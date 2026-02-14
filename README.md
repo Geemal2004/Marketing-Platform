@@ -112,11 +112,8 @@ python -m venv venv
 # macOS/Linux:
 source venv/bin/activate
 
-# Install backend dependencies
-pip install -r backend/requirements.txt
-
-# Install simulation dependencies
-pip install -r simulation/requirements.txt
+# Install all Python dependencies
+pip install -r requirements.txt
 ```
 
 ### 4. Setup Frontend
@@ -174,7 +171,6 @@ agent-society-platform/
 │   │   ├── schemas/           # Pydantic request/response schemas
 │   │   ├── services/          # Business logic (VLM, auth)
 │   │   └── tasks.py           # Celery background tasks
-│   └── requirements.txt
 │
 ├── frontend/                   # Next.js 14 frontend
 │   ├── app/                   # App router pages
@@ -193,6 +189,7 @@ agent-society-platform/
 │   └── migrations/            # SQL schema files
 │
 ├── docker-compose.yml         # Infrastructure services
+├── requirements.txt           # Unified Python dependencies
 ├── .env.example               # Environment template
 └── README.md
 ```

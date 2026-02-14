@@ -18,7 +18,7 @@ REM Check if virtual environment exists
 if not exist "venv\Scripts\activate.bat" (
     echo ERROR: Virtual environment not found!
     echo Please run: python -m venv venv
-    echo Then install dependencies: pip install -r backend\requirements.txt
+    echo Then install dependencies: pip install -r requirements.txt
     pause
     exit /b 1
 )
