@@ -3,9 +3,8 @@ Simulation module exports
 """
 from simulation.ray_cluster import init_ray_cluster, shutdown_ray
 from simulation.llm_client import (
-    GeminiLLM,
-    GeminiActor,
-    configure_gemini,
+    QwenLLM,
+    QwenActor,
     call_llm_sync,
     get_llm_pool,
     shutdown_llm_pool,
@@ -19,9 +18,8 @@ from simulation.run_simulation import (
 __all__ = [
     "init_ray_cluster",
     "shutdown_ray",
-    "GeminiLLM",
-    "GeminiActor",
-    "configure_gemini",
+    "QwenLLM",
+    "QwenActor",
     "call_llm_sync",
     "get_llm_pool",
     "shutdown_llm_pool",

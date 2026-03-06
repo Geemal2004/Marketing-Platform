@@ -2,7 +2,7 @@
 Simulation orchestrator - manages large-scale agent simulations.
 
 Uses async patterns inspired by AgentSociety:
-- GeminiLLM actor pool for distributed LLM calls
+- QwenLLM actor pool for distributed LLM calls (via HuggingFace Space Ollama API)
 - asyncio.gather() for concurrent agent processing
 - Agents are plain objects, not Ray actors
 """
@@ -15,7 +15,7 @@ from typing import List, Dict, Any, Optional
 from simulation.ray_cluster import init_ray_cluster, shutdown_ray
 from simulation.agents.social_agent import SocialAgent
 from simulation.utils.profile_generator import ProfileGenerator
-from simulation.llm_client import GeminiLLM, configure_gemini, shutdown_llm_pool
+from simulation.llm_client import QwenLLM, shutdown_llm_pool
 
 logger = logging.getLogger(__name__)
 
@@ -25,7 +25,7 @@ class SimulationOrchestrator:
     Orchestrate large-scale agent simulations.
 
     Manages:
-    - LLM actor pool (Ray-backed)
+    - LLM actor pool (Ray-backed, Qwen via Ollama API)
     - Agent spawning (plain objects)
     - Ad content distribution
     - Result collection and analysis
@@ -54,7 +54,7 @@ class SimulationOrchestrator:
         self.profiles = []
         self.social_network = {}
         self.event_logs = []
-        self.llm_pool: Optional[GeminiLLM] = None
+        self.llm_pool: Optional[QwenLLM] = None
 
     async def run(
         self,
@@ -81,15 +81,12 @@ class SimulationOrchestrator:
         )
 
         try:
-            # Configure LLM environment
-            configure_gemini()
-
             # Initialize Ray cluster
             init_ray_cluster(num_cpus=None)
 
-            # Create LLM actor pool
+            # Create LLM actor pool (Qwen via Ollama API)
             num_actors = min(4, max(1, self.num_agents // 3))
-            self.llm_pool = GeminiLLM(num_actors=num_actors)
+            self.llm_pool = QwenLLM(num_actors=num_actors)
             logger.info(f"LLM actor pool created with {num_actors} actors")
 
             # Generate profiles
@@ -188,17 +185,16 @@ class SimulationOrchestrator:
         """
         logger.info("Broadcasting ad content to all agents...")
 
-        # GEMINI FREE TIER RATE LIMITS:
-        # - 10-15 RPM (requests per minute)
-        # Using batch_size=2 with 7s delay = ~8.5 RPM (safe margin)
-        batch_size = 2
-        batch_delay = 7
+        # Qwen HF Space has no per-minute rate limits, but responses are slow
+        # (~30-60s per request on free CPU). Using batch_size=3 with 2s delay.
+        batch_size = 3
+        batch_delay = 2
         all_states = []
 
         total_batches = (len(self.agents) + batch_size - 1) // batch_size
         logger.info(
             f"Processing {len(self.agents)} agents in {total_batches} "
-            f"batches (rate limited to ~8.5 RPM)"
+            f"batches (Qwen via Ollama API)"
         )
 
         for i in range(0, len(self.agents), batch_size):

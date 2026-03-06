@@ -47,9 +47,13 @@ class Settings(BaseSettings):
     aws_s3_bucket: str = "agentsociety-videos-dev"
     aws_region: str = "ap-south-1"
     
-    # Google Gemini API
+    # Google Gemini API (used by VLM video analysis)
     gemini_api_key: str = ""
     gemini_api_keys: str = ""  # comma-separated keys for rotation
+    
+    # Qwen LLM (HuggingFace Space - Ollama API, used by simulation agents)
+    qwen_api_url: str = "https://vish85521-doc.hf.space/api/generate"
+    qwen_model_name: str = "qwen3.5:397b-cloud"
     
     # Security
     jwt_secret: str = "change_this_to_a_random_32_character_string"

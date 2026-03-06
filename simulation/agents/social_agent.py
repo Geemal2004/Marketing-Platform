@@ -2,7 +2,7 @@
 SocialAgent - AI agent behavior for ad reaction simulation.
 
 No longer a Ray actor — agents are plain Python objects.
-LLM calls go through a shared GeminiLLM actor pool (Ray-backed).
+LLM calls go through a shared QwenLLM actor pool (Ray-backed, Ollama API).
 This follows AgentSociety's pattern where agents are regular objects
 and only LLM calls are distributed via Ray actors.
 """
@@ -45,7 +45,7 @@ class SocialAgent:
             agent_id: Unique identifier
             profile: Demographics and values dict
             experiment_id: Experiment this agent belongs to
-            llm_pool: GeminiLLM actor pool for LLM calls
+            llm_pool: QwenLLM actor pool for LLM calls
             friends: List of friend agent IDs
             memory_store: Optional AgentMemoryStore instance (shared)
         """
@@ -123,7 +123,6 @@ class SocialAgent:
                 response = ""
 
             parsed = self._parse_llm_response(response)
-            logger.info(f"[{self.agent_id}] Raw LLM response: {response[:200]}")
             logger.info(f"[{self.agent_id}] Result: {parsed['emotion']} / {parsed['opinion']} (intensity: {parsed['intensity']})")
 
             self.opinion_on_ad = parsed["opinion"]
