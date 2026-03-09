@@ -93,7 +93,7 @@ def analyze_video_with_gemini(video_path: str) -> str:
 Be specific and detailed. Focus on elements that could affect how different demographic groups might react to this advertisement."""
 
         response = client.models.generate_content(
-            model="gemini-3-flash-preview",
+            model="gemini-3.1-flash-lite-preview",
             contents=[uploaded_file, prompt]
         )
         
