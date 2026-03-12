@@ -3,7 +3,23 @@
 import { useState, useEffect } from 'react';
 import { useParams, useRouter } from 'next/navigation';
 import Link from 'next/link';
+import dynamic from 'next/dynamic';
 import { useQuery, useMutation } from '@tanstack/react-query';
+
+const AgentMap = dynamic(
+    () => import('@/components/AgentMap'),
+    { 
+        ssr: false,
+        loading: () => (
+            <div className="glass-card rounded-2xl h-[600px] flex items-center justify-center">
+                <div className="text-center">
+                    <Loader2 className="w-8 h-8 animate-spin mx-auto mb-4 text-primary-400" />
+                    <p className="text-white/60">Loading map component...</p>
+                </div>
+            </div>
+        )
+    }
+);
 import {
     ArrowLeft,
     Play,
@@ -14,6 +30,7 @@ import {
     TrendingUp,
     MessageCircle,
     AlertCircle,
+    MapPin,
 } from 'lucide-react';
 import {
     PieChart,
@@ -54,6 +71,26 @@ export default function ProjectDetailPage() {
             return status && status !== 'READY' && status !== 'FAILED' ? 5000 : false;
         },
     });
+
+    // Fetch existing simulations for this project
+    const { data: existingSimulations } = useQuery({
+        queryKey: ['simulations', projectId],
+        queryFn: () => simulationsApi.listForProject(projectId),
+        enabled: !!project && !activeSimulation, // Only fetch if we have a project and no active simulation
+    });
+
+    // Set the latest simulation as active if we don't have one and there are existing ones
+    useEffect(() => {
+        if (!activeSimulation && existingSimulations && existingSimulations.length > 0) {
+            // Backend returns order_by(created_at.desc()) so the first is the latest
+            setActiveSimulation(existingSimulations[0]);
+            
+            // If the latest simulation is still running/pending, enable polling
+            if (existingSimulations[0].status === 'PENDING' || existingSimulations[0].status === 'RUNNING') {
+                setPollingEnabled(true);
+            }
+        }
+    }, [existingSimulations, activeSimulation]);
 
     // Poll simulation status
     const { data: simulationStatus } = useQuery({
@@ -347,6 +384,17 @@ export default function ProjectDetailPage() {
                         )}
                     </div>
                 </div>
+
+                {/* Agent Map */}
+                {simulationStatus?.status === 'COMPLETED' && activeSimulation && (
+                    <div className="mt-8">
+                        <h2 className="text-xl font-semibold mb-4 flex items-center gap-2">
+                            <MapPin className="w-5 h-5 text-primary-400" />
+                            Agent Geographic Map
+                        </h2>
+                        <AgentMap simulationId={activeSimulation.id} />
+                    </div>
+                )}
             </div>
         </div>
     );

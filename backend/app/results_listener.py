@@ -108,6 +108,10 @@ class ResultsListener:
                 simulation.virality_score = results.get('virality_score', 0)
                 simulation.sentiment_breakdown = results.get('sentiment_breakdown', {})
                 
+                # Save map data and agent states for map visualization
+                simulation.map_data = results.get('map_data', [])
+                simulation.agent_states = results.get('agent_states', [])
+                
                 db.commit()
                 logger.info(f"Simulation {simulation_id} marked as COMPLETED")
                 

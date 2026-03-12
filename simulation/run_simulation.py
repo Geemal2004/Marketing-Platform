@@ -297,6 +297,40 @@ class SimulationOrchestrator:
         # Prepare agent logs for storage
         agent_logs = self.event_logs[:1000]
 
+        # Build map data (lightweight for map rendering)
+        map_data = []
+        for state in final_states:
+            profile = state.get("profile", {})
+            agent_id = state.get("agent_id", "")
+            map_data.append({
+                "agent_id": agent_id,
+                "coordinates": profile.get("coordinates", [0, 0]),
+                "opinion": state.get("opinion", "NEUTRAL"),
+                "friends": self.social_network.get(agent_id, []),
+            })
+
+        # Build enriched agent states (for detail popups)
+        agent_states = []
+        for state in final_states:
+            profile = state.get("profile", {})
+            agent_states.append({
+                "agent_id": state.get("agent_id", ""),
+                "coordinates": profile.get("coordinates", [0, 0]),
+                "opinion": state.get("opinion", "NEUTRAL"),
+                "emotion": state.get("emotion", "neutral"),
+                "emotion_intensity": state.get("emotion_intensity", 0),
+                "reasoning": state.get("reasoning", ""),
+                "friends": self.social_network.get(state.get("agent_id", ""), []),
+                "profile": {
+                    "age": profile.get("age"),
+                    "gender": profile.get("gender"),
+                    "location": profile.get("location"),
+                    "occupation": profile.get("occupation"),
+                    "education": profile.get("education"),
+                    "values": profile.get("values", []),
+                },
+            })
+
         return {
             "virality_score": round(virality_score, 2),
             "sentiment_breakdown": sentiment_counts,
@@ -304,6 +338,8 @@ class SimulationOrchestrator:
             "responding_agents": len(opinions),
             "risk_flags": risk_flags,
             "agent_logs": agent_logs,
+            "map_data": map_data,
+            "agent_states": agent_states,
         }
 
     def _detect_controversies(

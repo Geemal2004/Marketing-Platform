@@ -25,16 +25,22 @@ class ProfileGenerator:
         (65, 80): 0.08
     }
     
-    # Location distribution (example - can be customized)
+    # Location distribution — Sri Lankan cities
     LOCATION_DISTRIBUTION = {
-        "Colombo": 0.30,
-        "Mumbai": 0.15,
-        "Delhi": 0.12,
-        "Singapore": 0.10,
-        "London": 0.08,
-        "New York": 0.08,
-        "Sydney": 0.07,
-        "Other": 0.10
+        "Colombo": 0.35,
+        "Gampaha": 0.25,
+        "Kandy": 0.20,
+        "Galle": 0.12,
+        "Jaffna": 0.08,
+    }
+
+    # Base coordinates for map plotting (lat, lng)
+    BASE_COORDINATES = {
+        "Colombo": [6.9271, 79.8612],
+        "Gampaha": [7.0873, 79.9995],
+        "Kandy": [7.2906, 80.6337],
+        "Galle": [6.0328, 80.2150],
+        "Jaffna": [9.6615, 80.0255],
     }
     
     # Possible values that agents can hold
@@ -153,11 +159,17 @@ class ProfileGenerator:
             num_values = random.randint(2, 4)
             values = random.sample(cls.VALUES, num_values)
         
+        # Coordinates with jitter for map plotting
+        base_coords = cls.BASE_COORDINATES.get(location, [7.8731, 80.7718])  # fallback: center of Sri Lanka
+        lat = base_coords[0] + random.uniform(-0.05, 0.05)
+        lng = base_coords[1] + random.uniform(-0.05, 0.05)
+
         return {
             "agent_id": f"agent_{index:04d}",
             "age": age,
             "gender": gender,
             "location": location,
+            "coordinates": [lat, lng],
             "occupation": occupation,
             "education": education,
             "values": values

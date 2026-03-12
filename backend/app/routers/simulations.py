@@ -12,7 +12,10 @@ from app.schemas import (
     SimulationResponse, 
     SimulationStatusResponse,
     SimulationResultsResponse,
-    RiskFlagResponse
+    RiskFlagResponse,
+    MapDataResponse,
+    AgentDetailResponse,
+    AgentProfileData,
 )
 from app.dependencies import get_current_user
 from app.config import get_settings
@@ -230,3 +233,96 @@ async def list_project_simulations(
     ).order_by(SimulationRun.created_at.desc()).all()
     
     return simulations
+
+
+@router.get("/{simulation_id}/map-data", response_model=MapDataResponse)
+async def get_simulation_map_data(
+    simulation_id: str,
+    current_user: User = Depends(get_current_user),
+    db: Session = Depends(get_db)
+):
+    """
+    Get lightweight map data for all agents in a completed simulation.
+    Returns coordinates, opinion and friends for each agent.
+    """
+    simulation = db.query(SimulationRun).join(Project).filter(
+        SimulationRun.id == simulation_id,
+        Project.user_id == current_user.id
+    ).first()
+    
+    if not simulation:
+        raise HTTPException(
+            status_code=status.HTTP_404_NOT_FOUND,
+            detail="Simulation not found"
+        )
+    
+    if simulation.status != "COMPLETED":
+        raise HTTPException(
+            status_code=status.HTTP_400_BAD_REQUEST,
+            detail="Simulation has not completed yet"
+        )
+    
+    map_data = simulation.map_data or []
+    return MapDataResponse(map_data=map_data)
+
+
+@router.get("/{simulation_id}/agents/{agent_id}", response_model=AgentDetailResponse)
+async def get_agent_detail(
+    simulation_id: str,
+    agent_id: str,
+    current_user: User = Depends(get_current_user),
+    db: Session = Depends(get_db)
+):
+    """
+    Get full detail for a specific agent in a simulation.
+    Returns profile, emotion, opinion, reasoning and friends.
+    """
+    simulation = db.query(SimulationRun).join(Project).filter(
+        SimulationRun.id == simulation_id,
+        Project.user_id == current_user.id
+    ).first()
+    
+    if not simulation:
+        raise HTTPException(
+            status_code=status.HTTP_404_NOT_FOUND,
+            detail="Simulation not found"
+        )
+    
+    if simulation.status != "COMPLETED":
+        raise HTTPException(
+            status_code=status.HTTP_400_BAD_REQUEST,
+            detail="Simulation has not completed yet"
+        )
+    
+    # Find the agent in agent_states
+    agent_states = simulation.agent_states or []
+    agent_data = None
+    for state in agent_states:
+        if state.get("agent_id") == agent_id:
+            agent_data = state
+            break
+    
+    if not agent_data:
+        raise HTTPException(
+            status_code=status.HTTP_404_NOT_FOUND,
+            detail=f"Agent {agent_id} not found in simulation"
+        )
+    
+    profile_raw = agent_data.get("profile", {})
+    return AgentDetailResponse(
+        agent_id=agent_data["agent_id"],
+        coordinates=agent_data.get("coordinates", [0, 0]),
+        opinion=agent_data.get("opinion", "NEUTRAL"),
+        emotion=agent_data.get("emotion", "neutral"),
+        emotion_intensity=agent_data.get("emotion_intensity", 0),
+        reasoning=agent_data.get("reasoning", ""),
+        friends=agent_data.get("friends", []),
+        profile=AgentProfileData(
+            age=profile_raw.get("age"),
+            gender=profile_raw.get("gender"),
+            location=profile_raw.get("location"),
+            occupation=profile_raw.get("occupation"),
+            education=profile_raw.get("education"),
+            values=profile_raw.get("values", []),
+        ),
+    )

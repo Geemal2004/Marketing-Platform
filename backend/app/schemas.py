@@ -124,3 +124,36 @@ class SimulationResultsResponse(BaseModel):
     simulation: SimulationResponse
     risk_flags: List[RiskFlagResponse]
     agent_sample: Optional[List[Dict[str, Any]]] = None
+
+
+# ----- Map Visualization Schemas -----
+class MapAgentData(BaseModel):
+    agent_id: str
+    coordinates: List[float]
+    opinion: str
+    friends: List[str]
+
+
+class MapDataResponse(BaseModel):
+    map_data: List[MapAgentData]
+
+
+class AgentProfileData(BaseModel):
+    age: Optional[int] = None
+    gender: Optional[str] = None
+    location: Optional[str] = None
+    occupation: Optional[str] = None
+    education: Optional[str] = None
+    values: List[str] = []
+
+
+class AgentDetailResponse(BaseModel):
+    agent_id: str
+    coordinates: List[float]
+    opinion: str
+    emotion: str
+    emotion_intensity: float = 0
+    reasoning: str = ""
+    friends: List[str] = []
+    profile: AgentProfileData
+
