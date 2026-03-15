@@ -76,19 +76,22 @@ export default function ProjectDetailPage() {
     const { data: existingSimulations } = useQuery({
         queryKey: ['simulations', projectId],
         queryFn: () => simulationsApi.listForProject(projectId),
-        enabled: !!project && !activeSimulation, // Only fetch if we have a project and no active simulation
+        enabled: !!project && !activeSimulation,
+        refetchOnWindowFocus: false, // prevent refetch on window focus from re-triggering the simulation useEffect
     });
 
-    // Set the latest simulation as active if we don't have one and there are existing ones
+    // Restore the most recent COMPLETED simulation on page load.
+    // Do NOT auto-resume PENDING/RUNNING ones — they may be stale from a
+    // previous session and auto-resuming them causes the UI to incorrectly
+    // show "Running..." whenever the user clicks anywhere on the page.
     useEffect(() => {
         if (!activeSimulation && existingSimulations && existingSimulations.length > 0) {
-            // Backend returns order_by(created_at.desc()) so the first is the latest
-            setActiveSimulation(existingSimulations[0]);
-            
-            // If the latest simulation is still running/pending, enable polling
-            if (existingSimulations[0].status === 'PENDING' || existingSimulations[0].status === 'RUNNING') {
-                setPollingEnabled(true);
-            }
+            const latest = existingSimulations[0];
+            setActiveSimulation(latest);
+
+            // Only re-enable polling if the simulation is genuinely still in-flight
+            // from THIS session (i.e. we already set pollingEnabled ourselves).
+            // Never auto-resume stale PENDING/RUNNING state from a previous session.
         }
     }, [existingSimulations, activeSimulation]);
 
@@ -201,13 +204,14 @@ export default function ProjectDetailPage() {
                                             <input
                                                 type="number"
                                                 value={numAgents}
-                                                onChange={(e) => setNumAgents(Math.max(10, Math.min(1000, parseInt(e.target.value) || 10)))}
+                                                onChange={(e) => setNumAgents(Math.max(5, Math.min(1000, parseInt(e.target.value) || 5)))}
+                                                onKeyDown={(e) => e.key === 'Enter' && e.preventDefault()}
                                                 className="input-field"
-                                                min={10}
+                                                min={5}
                                                 max={1000}
                                                 disabled={pollingEnabled}
                                             />
-                                            <p className="text-xs text-white/40 mt-1">10 - 1,000 agents</p>
+                                            <p className="text-xs text-white/40 mt-1">5 - 1,000 agents</p>
                                         </div>
 
                                         <div>
@@ -218,6 +222,7 @@ export default function ProjectDetailPage() {
                                                 type="number"
                                                 value={simulationDays}
                                                 onChange={(e) => setSimulationDays(Math.max(1, Math.min(30, parseInt(e.target.value) || 1)))}
+                                                onKeyDown={(e) => e.key === 'Enter' && e.preventDefault()}
                                                 className="input-field"
                                                 min={1}
                                                 max={30}
@@ -227,6 +232,7 @@ export default function ProjectDetailPage() {
                                     </div>
 
                                     <button
+                                        type="button"
                                         onClick={handleStartSimulation}
                                         disabled={pollingEnabled || startSimulation.isPending}
                                         className="w-full btn-primary py-3 flex items-center justify-center disabled:opacity-50"
