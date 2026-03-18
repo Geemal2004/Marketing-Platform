@@ -31,6 +31,7 @@ import {
     MessageCircle,
     AlertCircle,
     MapPin,
+    Download,
 } from 'lucide-react';
 import {
     PieChart,
@@ -129,6 +130,40 @@ export default function ProjectDetailPage() {
 
     const handleStartSimulation = () => {
         startSimulation.mutate();
+    };
+
+    const handleDownloadReport = async () => {
+        if (!activeSimulation) return;
+
+        try {
+            const baseUrl = process.env.NEXT_PUBLIC_API_URL || '/api';
+            const response = await fetch(
+                `${baseUrl}/simulations/${activeSimulation.id}/report`,
+                {
+                    headers: {
+                        Authorization: `Bearer ${localStorage.getItem('token')}`,
+                    },
+                }
+            );
+
+            if (!response.ok) {
+                throw new Error('Failed to download report');
+            }
+
+            const blob = await response.blob();
+            const url = window.URL.createObjectURL(blob);
+
+            const a = document.createElement('a');
+            a.href = url;
+            a.download = 'simulation_report.pdf';
+            document.body.appendChild(a);
+            a.click();
+            a.remove();
+
+            window.URL.revokeObjectURL(url);
+        } catch (error) {
+            console.error('Failed to download report', error);
+        }
     };
 
     const getSeverityClass = (severity: string) => {
@@ -278,6 +313,16 @@ export default function ProjectDetailPage() {
                     <div className="lg:col-span-2 space-y-6">
                         {results ? (
                             <>
+                                <div className="flex justify-end">
+                                    <button
+                                        onClick={handleDownloadReport}
+                                        className="btn-primary flex items-center space-x-2 px-4 py-2"
+                                    >
+                                        <Download className="w-4 h-4" />
+                                        <span>Download Report</span>
+                                    </button>
+                                </div>
+
                                 {/* Stats Cards */}
                                 <div className="grid grid-cols-3 gap-4">
                                     <div className="glass-card rounded-xl p-4 text-center">
