@@ -64,6 +64,8 @@ async def start_simulation(
         project_id=project.id,
         num_agents=config.num_agents,
         simulation_days=config.simulation_days,
+        use_custom_agents_only=config.use_custom_agents_only,
+        agent_ids=config.agent_ids,
         status="PENDING"
     )
     
@@ -317,12 +319,19 @@ async def get_agent_detail(
         reasoning=agent_data.get("reasoning", ""),
         friends=agent_data.get("friends", []),
         profile=AgentProfileData(
+            name=profile_raw.get("name"),
             age=profile_raw.get("age"),
             gender=profile_raw.get("gender"),
             location=profile_raw.get("location"),
             occupation=profile_raw.get("occupation"),
             education=profile_raw.get("education"),
+            income_level=profile_raw.get("income_level"),
+            religion=profile_raw.get("religion"),
+            ethnicity=profile_raw.get("ethnicity"),
+            social_media_usage=profile_raw.get("social_media_usage"),
+            political_leaning=profile_raw.get("political_leaning"),
             values=profile_raw.get("values", []),
+            personality_traits=profile_raw.get("personality_traits", []),
         ),
     )
 

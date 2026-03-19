@@ -9,7 +9,7 @@ from sqlalchemy.orm import Session
 from typing import List, Optional
 from app.database import get_db
 from app.models import User, Project
-from app.schemas import ProjectCreate, ProjectResponse, ProjectListResponse
+from app.schemas import ProjectCreate, ProjectResponse, ProjectListResponse, ProjectContextUpdate
 from app.dependencies import get_current_user
 from app.config import get_settings
 
@@ -165,3 +165,31 @@ async def delete_project(
     # Delete project record
     db.delete(project)
     db.commit()
+
+
+@router.patch("/{project_id}/context", response_model=ProjectResponse)
+async def update_project_context(
+    project_id: str,
+    context_update: ProjectContextUpdate,
+    current_user: User = Depends(get_current_user),
+    db: Session = Depends(get_db)
+):
+    """
+    Update the VLM generated context for a project
+    """
+    project = db.query(Project).filter(
+        Project.id == project_id,
+        Project.user_id == current_user.id
+    ).first()
+    
+    if not project:
+        raise HTTPException(
+            status_code=status.HTTP_404_NOT_FOUND,
+            detail="Project not found"
+        )
+    
+    project.vlm_generated_context = context_update.vlm_generated_context
+    db.commit()
+    db.refresh(project)
+    
+    return project

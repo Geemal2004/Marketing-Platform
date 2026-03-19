@@ -149,6 +149,40 @@ def run_simulation_task(self, simulation_id: str):
             simulation.error_message = "Project video analysis not complete"
             db.commit()
             return {"error": "Project not ready"}
+
+        # Fetch custom agent profiles
+        from app.models import CustomAgent
+        from simulation.utils.profile_generator import ProfileGenerator
+        import random
+        
+        request_custom_profiles = None
+        if simulation.agent_ids:
+            custom_agents = db.query(CustomAgent).filter(CustomAgent.id.in_(simulation.agent_ids)).all()
+            if custom_agents:
+                request_custom_profiles = []
+                for ca in custom_agents:
+                    base_coords = ProfileGenerator.BASE_COORDINATES.get(ca.location, [7.8731, 80.7718])
+                    lat = base_coords[0] + random.uniform(-0.12, 0.12)
+                    lng = base_coords[1] + random.uniform(-0.12, 0.12)
+                    profile = {
+                        "agent_id": f"custom_{str(ca.id)[:8]}",
+                        "age": ca.age,
+                        "gender": ca.gender,
+                        "location": ca.location,
+                        "occupation": ca.occupation,
+                        "education": ca.education,
+                        "income_level": ca.income_level,
+                        "religion": ca.religion,
+                        "ethnicity": ca.ethnicity,
+                        "social_media_usage": ca.social_media_usage,
+                        "political_leaning": ca.political_leaning,
+                        "values": ca.values,
+                        "personality_traits": ca.personality_traits,
+                        "bio": ca.bio,
+                        "name": ca.name,
+                        "coordinates": [lat, lng]
+                    }
+                    request_custom_profiles.append(profile)
         
         # Update status to RUNNING (Ray worker will process)
         simulation.status = "RUNNING"
@@ -164,7 +198,9 @@ def run_simulation_task(self, simulation_id: str):
             "ad_content": project.vlm_generated_context,
             "demographic_filter": project.demographic_filter,
             "num_agents": simulation.num_agents,
-            "simulation_days": simulation.simulation_days
+            "simulation_days": simulation.simulation_days,
+            "custom_agent_profiles": request_custom_profiles,
+            "use_custom_agents_only": simulation.use_custom_agents_only
         }
         
         try:

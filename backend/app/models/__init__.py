@@ -3,7 +3,7 @@ SQLAlchemy models for the AgentSociety platform
 """
 import uuid
 from datetime import datetime
-from sqlalchemy import Column, String, Integer, Float, Text, DateTime, ForeignKey, JSON, BigInteger
+from sqlalchemy import Column, String, Integer, Float, Text, DateTime, ForeignKey, JSON, BigInteger, Boolean
 from sqlalchemy.dialects.postgresql import UUID
 from sqlalchemy.orm import relationship
 from app.database import Base
@@ -20,6 +20,7 @@ class User(Base):
     
     # Relationships
     projects = relationship("Project", back_populates="user", cascade="all, delete-orphan")
+    custom_agents = relationship("CustomAgent", back_populates="user", cascade="all, delete-orphan")
 
 
 class Project(Base):
@@ -58,6 +59,10 @@ class SimulationRun(Base):
     error_message = Column(Text, nullable=True)
     created_at = Column(DateTime, default=datetime.utcnow)
     
+    # Custom Agents
+    use_custom_agents_only = Column(Boolean, default=False)
+    agent_ids = Column(JSON, nullable=True)
+    
     # Relationships
     project = relationship("Project", back_populates="simulation_runs")
     agent_logs = relationship("AgentLog", back_populates="simulation_run", cascade="all, delete-orphan")
@@ -92,3 +97,27 @@ class RiskFlag(Base):
     
     # Relationships
     simulation_run = relationship("SimulationRun", back_populates="risk_flags")
+
+
+class CustomAgent(Base):
+    __tablename__ = "custom_agents"
+    
+    id = Column(UUID(as_uuid=True), primary_key=True, default=uuid.uuid4)
+    user_id = Column(UUID(as_uuid=True), ForeignKey("users.id", ondelete="CASCADE"), nullable=False)
+    name = Column(String(100), nullable=False)
+    age = Column(Integer, nullable=False)
+    gender = Column(String(20), nullable=False)
+    location = Column(String(100), nullable=False)
+    occupation = Column(String(100), nullable=False)
+    education = Column(String(100), nullable=False)
+    income_level = Column(String(50), nullable=False)
+    religion = Column(String(50), nullable=True)
+    ethnicity = Column(String(50), nullable=True)
+    social_media_usage = Column(String(50), nullable=False)
+    political_leaning = Column(String(50), nullable=True)
+    values = Column(JSON, nullable=False)
+    personality_traits = Column(JSON, nullable=False)
+    bio = Column(Text, nullable=True)
+    created_at = Column(DateTime, default=datetime.utcnow)
+    
+    user = relationship("User", back_populates="custom_agents")
