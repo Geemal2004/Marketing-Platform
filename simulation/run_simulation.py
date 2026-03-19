@@ -62,6 +62,8 @@ class SimulationOrchestrator:
         demographic_filter: Optional[Dict[str, Any]] = None,
         simulation_days: int = 5,
         redis_client=None,
+        custom_agent_profiles: Optional[List[Dict]] = None,
+        use_custom_agents_only: bool = False,
     ) -> Dict[str, Any]:
         """
         Run full simulation (async).
@@ -89,23 +91,9 @@ class SimulationOrchestrator:
             self.llm_pool = QwenLLM(num_actors=num_actors)
             logger.info(f"LLM actor pool created with {num_actors} actors")
 
-            # Generate profiles
+            # Profiles and spawning agents
             self._update_progress(redis_client, 5, 0, 0)
-            self.profiles = ProfileGenerator.generate_profiles(
-                self.num_agents, demographic_filter
-            )
-            logger.info(f"Generated {len(self.profiles)} agent profiles")
-
-            # Create social network
-            self._update_progress(redis_client, 10, 0, 0)
-            self.social_network = ProfileGenerator.generate_social_network(
-                self.profiles, avg_friends=8
-            )
-            logger.info("Social network created")
-
-            # Spawn agents (plain objects, not Ray actors)
-            self._update_progress(redis_client, 15, 0, 0)
-            self._spawn_agents()
+            self._spawn_agents(custom_agent_profiles, use_custom_agents_only, demographic_filter)
             logger.info(f"Spawned {len(self.agents)} agents")
 
             # Have all agents perceive the ad
@@ -132,9 +120,29 @@ class SimulationOrchestrator:
             self._cleanup()
             raise
 
-    def _spawn_agents(self):
-        """Spawn all agents as plain Python objects"""
+    def _spawn_agents(
+        self, 
+        custom_agent_profiles: Optional[List[Dict]] = None, 
+        use_custom_agents_only: bool = False,
+        demographic_filter: Optional[Dict[str, Any]] = None
+    ):
+        """Spawn all agents as plain Python objects and configure network"""
         self.agents = []
+
+        if custom_agent_profiles and use_custom_agents_only:
+            self.profiles = list(custom_agent_profiles)
+        elif custom_agent_profiles:
+            self.profiles = list(custom_agent_profiles)
+            remaining = self.num_agents - len(self.profiles)
+            if remaining > 0:
+                self.profiles.extend(ProfileGenerator.generate_profiles(remaining, demographic_filter))
+            self.profiles = self.profiles[:self.num_agents]
+        else:
+            self.profiles = ProfileGenerator.generate_profiles(self.num_agents, demographic_filter)
+            
+        self.social_network = ProfileGenerator.generate_social_network(
+            self.profiles, avg_friends=8
+        )
 
         # Try to create a shared memory store (optional)
         memory_store = self._create_memory_store()
@@ -354,11 +362,18 @@ class SimulationOrchestrator:
                 "reasoning": state.get("reasoning", ""),
                 "friends": self.social_network.get(state.get("agent_id", ""), []),
                 "profile": {
+                    "name": profile.get("name"),
                     "age": profile.get("age"),
                     "gender": profile.get("gender"),
                     "location": profile.get("location"),
                     "occupation": profile.get("occupation"),
                     "education": profile.get("education"),
+                    "income_level": profile.get("income_level"),
+                    "religion": profile.get("religion"),
+                    "ethnicity": profile.get("ethnicity"),
+                    "social_media_usage": profile.get("social_media_usage"),
+                    "political_leaning": profile.get("political_leaning"),
+                    "personality_traits": profile.get("personality_traits", []),
                     "values": profile.get("values", []),
                 },
             })
@@ -494,6 +509,8 @@ async def run_simulation_async(
     num_agents: int = 10,
     simulation_days: int = 5,
     redis_client=None,
+    custom_agent_profiles: Optional[List[Dict]] = None,
+    use_custom_agents_only: bool = False,
 ) -> Dict[str, Any]:
     """
     Async convenience function to run a simulation.
@@ -523,6 +540,8 @@ async def run_simulation_async(
         demographic_filter=demographic_filter,
         simulation_days=simulation_days,
         redis_client=redis_client,
+        custom_agent_profiles=custom_agent_profiles,
+        use_custom_agents_only=use_custom_agents_only,
     )
 
 
@@ -533,6 +552,8 @@ def run_simulation(
     num_agents: int = 10,
     simulation_days: int = 5,
     redis_client=None,
+    custom_agent_profiles: Optional[List[Dict]] = None,
+    use_custom_agents_only: bool = False,
 ) -> Dict[str, Any]:
     """
     Synchronous convenience function to run a simulation.
@@ -546,5 +567,7 @@ def run_simulation(
             num_agents=num_agents,
             simulation_days=simulation_days,
             redis_client=redis_client,
+            custom_agent_profiles=custom_agent_profiles,
+            use_custom_agents_only=use_custom_agents_only,
         )
     )

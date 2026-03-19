@@ -101,13 +101,20 @@ def _collect_agent_reasonings(simulation, agent_logs):
         agent_id = state.get('agent_id')
         reasoning = (state.get('reasoning') or '').strip()
         opinion = (state.get('opinion') or 'NEUTRAL').upper()
+        profile = state.get('profile') or {}
 
         if agent_id and reasoning:
+            demographics = (
+                f"Age: {profile.get('age', 'N/A')} | Gender: {profile.get('gender', 'N/A')} | "
+                f"Location: {profile.get('location', 'N/A')} | Income: {profile.get('income_level', 'N/A')} | "
+                f"Religion: {profile.get('religion', 'N/A')} | Ethnicity: {profile.get('ethnicity', 'N/A')}"
+            )
             reasonings.append(
                 {
                     'agent_id': agent_id,
                     'opinion': opinion,
                     'reasoning': reasoning,
+                    'demographics': demographics
                 }
             )
 
@@ -365,9 +372,10 @@ def generate_simulation_report(simulation, risk_flags, agent_logs):
 
     if all_reasonings:
         for item in all_reasonings:
+            demographics = item.get('demographics', 'Demographics not available')
             elements.append(
                 Paragraph(
-                    f"<b>{item['agent_id']}</b> ({item['opinion']}): {item['reasoning']}",
+                    f"<b>{item['agent_id']}</b> ({item['opinion']}): {item['reasoning']}<br/><i><font size='8' color='gray'>{demographics}</font></i>",
                     styles['Normal'],
                 )
             )

@@ -22,7 +22,7 @@ import logging
 import signal
 from pathlib import Path
 from datetime import datetime
-from typing import Optional
+from typing import Optional, List, Dict
 
 # Add project root to path
 project_root = Path(__file__).parent.parent
@@ -177,7 +177,9 @@ class SimulationWorker:
                 ad_content=request.get('ad_content', ''),
                 demographic_filter=request.get('demographic_filter'),
                 num_agents=request.get('num_agents', 10),
-                simulation_days=request.get('simulation_days', 5)
+                simulation_days=request.get('simulation_days', 5),
+                custom_agent_profiles=request.get('custom_agent_profiles'),
+                use_custom_agents_only=request.get('use_custom_agents_only', False)
             )
 
             # Publish results to Redis
@@ -235,7 +237,9 @@ class SimulationWorker:
         ad_content: str,
         demographic_filter: Optional[dict],
         num_agents: int,
-        simulation_days: int
+        simulation_days: int,
+        custom_agent_profiles: Optional[List[Dict]] = None,
+        use_custom_agents_only: bool = False
     ) -> dict:
         """Run the actual simulation using async orchestrator"""
         from simulation.run_simulation import run_simulation
@@ -247,6 +251,8 @@ class SimulationWorker:
             num_agents=num_agents,
             simulation_days=simulation_days,
             redis_client=self.redis_client,
+            custom_agent_profiles=custom_agent_profiles,
+            use_custom_agents_only=use_custom_agents_only
         )
 
     def stop(self):

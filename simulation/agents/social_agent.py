@@ -176,18 +176,34 @@ class SocialAgent:
             "\n".join(memory_context) if memory_context else "No past experiences"
         )
 
-        return f"""You are roleplaying as a real person with this profile:
-- Age: {self.profile.get('age', 'Unknown')}
-- Gender: {self.profile.get('gender', 'Unknown')}
-- Location: {self.profile.get('location', 'Unknown')}
-- Occupation: {self.profile.get('occupation', 'Not specified')}
-- Core values: {values_str}
+        bio = self.profile.get('bio', '')
+        name = self.profile.get('name', 'a person')
+        personality_str = ", ".join(self.profile.get('personality_traits', [])) if self.profile.get('personality_traits') else 'Not specified'
 
-Your past experiences:
+        return f"""You are roleplaying as {name}, a real person with this profile:
+- Age: {self.profile.get('age', 'Unknown')}, Gender: {self.profile.get('gender', 'Unknown')}
+- Location: {self.profile.get('location', 'Unknown')}, Sri Lanka
+- Occupation: {self.profile.get('occupation', 'Not specified')}
+- Education: {self.profile.get('education', 'Not specified')}
+- Income Level: {self.profile.get('income_level', 'Not specified')}
+- Religion: {self.profile.get('religion', 'Not specified')}
+- Ethnicity: {self.profile.get('ethnicity', 'Not specified')}  
+- Political Leaning: {self.profile.get('political_leaning', 'Not specified')}
+- Social Media Usage: {self.profile.get('social_media_usage', 'Not specified')}
+- Core Values: {values_str}
+- Personality: {personality_str}
+- Background: {bio if bio else 'No specific background provided'}
+
+Your past experiences relevant to this ad:
 {memory_str}
 
 You just saw this advertisement:
 {ad_content}
+
+React authentically as {name}. Consider your background, 
+values, religion, and social context when forming your opinion.
+Strong reactions should reflect genuine conflicts or alignments 
+with your identity and values.
 
 Analyze your reaction as this person:
 1. How does this ad make you FEEL? (Choose one: HAPPY, ANGRY, SAD, NEUTRAL)
@@ -195,9 +211,7 @@ Analyze your reaction as this person:
 3. WHY do you feel this way? (2-3 sentences from YOUR perspective as this person)
 
 You MUST respond in this JSON format:
-{{"emotion": "ANGRY", "opinion": "NEGATIVE", "reasoning": "This ad shows something I disagree with because..."}}
-
-Be authentic to the character's values and background. If something in the ad conflicts with their values, they should react negatively."""
+{{"emotion": "ANGRY", "opinion": "NEGATIVE", "reasoning": "This ad shows something I disagree with because..."}}"""
 
     def _parse_llm_response(self, response: str) -> Dict[str, Any]:
         """Extract structured data from LLM response"""
