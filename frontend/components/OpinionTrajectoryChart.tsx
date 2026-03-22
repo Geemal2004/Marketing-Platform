@@ -40,10 +40,16 @@ export default function OpinionTrajectoryChart({ trajectoryData }: OpinionTrajec
     return null;
   }
 
+  // Quick fix: AreaChart requires at least 2 points to draw an area/line.
+  // If we only have 1 day of data, duplicate it to stretch across the chart.
+  const displayData = chartData.length === 1 
+    ? [chartData[0], { ...chartData[0], day: chartData[0].day + 0.99 }] 
+    : chartData;
+
   return (
     <div className="w-full h-[300px]">
       <ResponsiveContainer width="100%" height={300}>
-        <AreaChart data={chartData} margin={{ top: 10, right: 30, left: 0, bottom: 0 }}>
+        <AreaChart data={displayData} margin={{ top: 10, right: 30, left: 0, bottom: 0 }}>
           <XAxis dataKey="day" label={{ value: 'Day', position: 'insideBottomRight', offset: -10 }} />
           <YAxis label={{ value: 'Agents', angle: -90, position: 'insideLeft' }} />
           <Tooltip 

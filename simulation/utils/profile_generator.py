@@ -142,7 +142,9 @@ class ProfileGenerator:
             occupation = random.choice(cls.OCCUPATIONS_SENIOR)
             
         # Education
-        if age < 22:
+        if demographic_filter and 'education' in demographic_filter and demographic_filter['education']:
+            education = random.choice(demographic_filter['education'])
+        elif age < 22:
             education = "High School"
         else:
             education = random.choices(cls.EDUCATION_LEVELS, weights=[0.2, 0.40, 0.25, 0.05, 0.05, 0.05])[0]
@@ -159,8 +161,29 @@ class ProfileGenerator:
 
         # Coordinates with jitter
         base_coords = cls.BASE_COORDINATES.get(location, [7.8731, 80.7718])
-        lat = base_coords[0] + random.uniform(-0.12, 0.12)
-        lng = base_coords[1] + random.uniform(-0.12, 0.12)
+        
+        # Default jitter
+        lat_min, lat_max = -0.05, 0.05
+        lng_min, lng_max = -0.05, 0.05
+        
+        # Prevent jittering into the sea for coastal cities
+        west_coast_cities = ["Colombo", "Dehiwala-Mount Lavinia", "Moratuwa", "Negombo", "Kalutara", "Puttalam", "Mannar"]
+        east_coast_cities = ["Trincomalee", "Batticaloa", "Kalmunai"]
+        south_coast_cities = ["Galle", "Matara", "Hambantota"]
+        north_coast_cities = ["Jaffna"]
+        
+        if location in west_coast_cities:
+            lng_min = 0.0  # Shift East
+        elif location in east_coast_cities:
+            lng_max = 0.0  # Shift West
+            
+        if location in south_coast_cities:
+            lat_min = 0.0  # Shift North
+        elif location in north_coast_cities:
+            lat_max = 0.0  # Shift South
+            
+        lat = base_coords[0] + random.uniform(lat_min, lat_max)
+        lng = base_coords[1] + random.uniform(lng_min, lng_max)
 
         # Income Level
         if demographic_filter and 'income_level' in demographic_filter and demographic_filter['income_level']:
@@ -194,7 +217,10 @@ class ProfileGenerator:
         else:
             religion = random.choices(religions, weights=rel_weights)[0]
 
-        ethnicity = random.choices(ethnicities, weights=eth_weights)[0]
+        if demographic_filter and 'ethnicity' in demographic_filter and demographic_filter['ethnicity']:
+            ethnicity = random.choice(demographic_filter['ethnicity'])
+        else:
+            ethnicity = random.choices(ethnicities, weights=eth_weights)[0]
 
         # Name Generation based on Ethnicity
         if ethnicity == "Sinhalese":
@@ -213,7 +239,9 @@ class ProfileGenerator:
         name = f"{random.choice(first_names)} {random.choice(surnames)}"
 
         # Social Media Usage
-        if age < 30:
+        if demographic_filter and 'social_media_usage' in demographic_filter and demographic_filter['social_media_usage']:
+            social_media_usage = random.choice(demographic_filter['social_media_usage'])
+        elif age < 30:
             social_media_usage = random.choices(cls.SOCIAL_MEDIA_USAGE, weights=[0.4, 0.4, 0.15, 0.05, 0.0])[0]
         elif age < 50:
             social_media_usage = random.choices(cls.SOCIAL_MEDIA_USAGE, weights=[0.1, 0.3, 0.4, 0.15, 0.05])[0]
@@ -221,7 +249,10 @@ class ProfileGenerator:
             social_media_usage = random.choices(cls.SOCIAL_MEDIA_USAGE, weights=[0.0, 0.1, 0.3, 0.4, 0.2])[0]
 
         # Political Leaning
-        political_leaning = random.choice(cls.POLITICAL_LEANING)
+        if demographic_filter and 'political_leaning' in demographic_filter and demographic_filter['political_leaning']:
+            political_leaning = random.choice(demographic_filter['political_leaning'])
+        else:
+            political_leaning = random.choice(cls.POLITICAL_LEANING)
 
         # Personality Traits
         personality_traits = random.sample(cls.PERSONALITY_TRAITS, random.randint(2, 3))
