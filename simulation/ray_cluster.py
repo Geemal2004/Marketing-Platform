@@ -8,6 +8,11 @@ import ray
 logger = logging.getLogger(__name__)
 
 
+def _clean_env(name: str, default: str = "") -> str:
+    """Read env var and trim surrounding whitespace/newlines."""
+    return (os.getenv(name, default) or default).strip()
+
+
 def init_ray_cluster(
     num_cpus: int = None,
     num_gpus: int = 0,
@@ -29,8 +34,8 @@ def init_ray_cluster(
         ray.shutdown()
 
     # Get API key(s) to pass to workers via runtime_env
-    api_key = os.getenv("GEMINI_API_KEY", "")
-    api_keys = os.getenv("GEMINI_API_KEYS", "")
+    api_key = _clean_env("GEMINI_API_KEY", "")
+    api_keys = _clean_env("GEMINI_API_KEYS", "")
     if api_keys:
         key_count = len([k for k in api_keys.split(",") if k.strip()])
         logger.info(f"GEMINI_API_KEYS found ({key_count} keys for rotation)")
@@ -39,12 +44,12 @@ def init_ray_cluster(
     else:
         logger.error("GEMINI_API_KEY is NOT set! LLM calls will fail.")
         
-    qwen_api_url = os.getenv("QWEN_API_URL")
+    qwen_api_url = _clean_env("QWEN_API_URL", "")
     if not qwen_api_url:
         logger.warning("QWEN_API_URL is not set, using default HuggingFace endpoint")
         qwen_api_url = "https://vish85521-doc.hf.space/api/generate"
         
-    qwen_model_name = os.getenv("QWEN_MODEL_NAME", "qwen3.5:397b-cloud")
+    qwen_model_name = _clean_env("QWEN_MODEL_NAME", "qwen3.5:397b-cloud")
         
     runtime_env = {
         "env_vars": {

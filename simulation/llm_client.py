@@ -35,8 +35,13 @@ for env_path in env_paths:
 logger = logging.getLogger(__name__)
 
 # Default Qwen API configuration
-DEFAULT_QWEN_API_URL = "https://vish85521-doc.hf.space/api/generate"
+DEFAULT_QWEN_API_URL = "https://vish85521-qwen.hf.space/api/generate"
 DEFAULT_QWEN_MODEL = "qwen3.5:397b-cloud"
+
+
+def _clean_env(name: str, default: str = "") -> str:
+    """Read env var and trim surrounding whitespace/newlines."""
+    return (os.getenv(name, default) or default).strip()
 
 
 @ray.remote
@@ -50,13 +55,13 @@ class QwenActor:
 
     def __init__(self):
         """Initialize with API config from environment."""
-        self._api_url = os.getenv("QWEN_API_URL", DEFAULT_QWEN_API_URL)
-        self._model_name = os.getenv("QWEN_MODEL_NAME", DEFAULT_QWEN_MODEL)
+        self._api_url = _clean_env("QWEN_API_URL", DEFAULT_QWEN_API_URL)
+        self._model_name = _clean_env("QWEN_MODEL_NAME", DEFAULT_QWEN_MODEL)
         self._session = requests.Session()
         self._session.headers.update({"Content-Type": "application/json"})
 
         # Optional: HuggingFace token for private spaces
-        hf_token = os.getenv("HF_TOKEN", "")
+        hf_token = _clean_env("HF_TOKEN", "")
         if hf_token:
             self._session.headers["Authorization"] = f"Bearer {hf_token}"
 
