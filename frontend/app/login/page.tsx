@@ -51,7 +51,7 @@ export default function LoginPage() {
 
                     <div>
                         <h1 className="text-4xl font-bold leading-tight">
-                            YOUR <br /> YOUR NEXT AD STRATEGY <br /> STARTS HERE
+                            <br /> YOUR NEXT AD STRATEGY <br /> STARTS HERE
                         </h1>
 
                         <p className="mt-4 text-sm text-gray-200 max-w-sm">
