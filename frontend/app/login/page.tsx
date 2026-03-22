@@ -31,8 +31,13 @@ export default function LoginPage() {
         try {
             await authApi.login(formData.email, formData.password);
             const user = await authApi.getMe();
+            console.log("user response:", user);
             setUser(user);
-            router.push('/dashboard');
+            
+            // Set user response as cookie
+            document.cookie = `user=${encodeURIComponent(JSON.stringify(user))}; path=/; max-age=86400`;
+            
+            router.push('/');
         } catch (err: any) {
             setError(err.response?.data?.detail || 'Login failed. Please try again.');
         } finally {

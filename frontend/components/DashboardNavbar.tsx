@@ -13,8 +13,9 @@ export default function DashboardNavbar() {
 
     const handleLogout = () => {
         authApi.logout();
+        document.cookie = 'user=; path=/; max-age=0'; // Clear the user cookie
         logout();
-        router.push('/');
+        router.push('/login');
     };
 
     const isActive = (path: string) => {

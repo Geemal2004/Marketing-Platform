@@ -1,10 +1,24 @@
+'use client';
 import Link from 'next/link';
 import { Zap, Shield, BarChart3, Users, ArrowRight } from 'lucide-react';
+import DashboardNavbar from '@/components/DashboardNavbar';
+import { useEffect, useState } from 'react';
 
 export default function HomePage() {
+    const [cookie,setCookie] = useState<string[]>([]);
+    useEffect(()=>{
+         setCookie(document.cookie.split('; '));
+        console.log("Cookies:", cookie);
+    },[]);
+   
+    const userCookie = cookie.find(row => row.startsWith('user='));
+
     return (
         <div className="min-h-screen bg-[#f3f3f1] text-[#101828] font-sans overflow-hidden">
             {/* Top Navigation Bar mimicking the Dashboard */}
+            {userCookie ?
+            <DashboardNavbar/>
+            :
             <header className="border-b border-[#e5e7eb] bg-[#f8f8f7] relative z-50">
                 <div className="mx-auto flex max-w-[1280px] items-center justify-between px-6 py-3">
                     <div className="flex items-center space-x-3">
@@ -24,7 +38,7 @@ export default function HomePage() {
                     </div>
                 </div>
             </header>
-
+            }
             {/* Hero Section */}
             <div className="relative">
                 {/* Subtle light mode decorative background elements */}
