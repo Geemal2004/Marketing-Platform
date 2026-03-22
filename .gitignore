@@ -53,7 +53,6 @@ logs/
 # Local data
 chroma_db/
 uploads/
-*.mp4
 *.mov
 *.avi
 reports/
