@@ -6,6 +6,8 @@ import Link from 'next/link';
 import dynamic from 'next/dynamic';
 import { useQuery } from '@tanstack/react-query';
 
+import { Radar, RadarChart, PolarGrid, PolarAngleAxis, PolarRadiusAxis, ResponsiveContainer } from 'recharts';
+
 const AgentMap = dynamic(
     () => import('@/components/AgentMap'),
     {
@@ -37,7 +39,7 @@ import {
     Activity,
     BarChart3,
 } from 'lucide-react';
-import { simulationsApi, projectsApi } from '@/lib/api';
+import { simulationsApi, projectsApi, getStoredToken } from '@/lib/api';
 import OpinionTrajectoryChart from '@/components/OpinionTrajectoryChart';
 
 const COLORS = {
@@ -100,11 +102,12 @@ export default function SimulationResultsPage() {
     const handleDownloadReport = async () => {
         try {
             const baseUrl = process.env.NEXT_PUBLIC_API_URL || '/api';
+            const token = getStoredToken();
             const response = await fetch(
                 `${baseUrl}/simulations/${simId}/report`,
                 {
                     headers: {
-                        Authorization: `Bearer ${localStorage.getItem('token')}`,
+                        ...(token ? { Authorization: `Bearer ${token}` } : {}),
                     },
                 }
             );
@@ -168,7 +171,7 @@ export default function SimulationResultsPage() {
                 <div className="max-w-[1400px] mx-auto px-4 md:px-8 py-5 flex items-start md:items-center justify-between gap-4">
                     <div>
                         <p className="text-3xl font-extrabold tracking-tight">
-                            BRAND<span className="font-light text-slate-600">CAMPAIGN</span>
+                            AGENTIC<span className="font-light text-slate-600">MARKETING</span>
                         </p>
                         <p className="text-sm text-slate-500 mt-1">Simulation analytics dashboard</p>
                     </div>
@@ -202,7 +205,7 @@ export default function SimulationResultsPage() {
                             {currentStatus || 'LOADING'}
                         </span>
                     </div>
-                    
+
                 </div>
 
                 {/* Running / Pending state */}
@@ -226,6 +229,24 @@ export default function SimulationResultsPage() {
                                     <p className="text-sm text-slate-500 mt-2">
                                         Day {simulationStatus.current_day} • {simulationStatus.active_agents} agents active
                                     </p>
+                                </div>
+                                <div className="mt-8">
+                                    <button
+                                        onClick={async () => {
+                                            if (confirm('Are you sure you want to cancel this simulation?')) {
+                                                try {
+                                                    await simulationsApi.cancel(simId);
+                                                    window.location.reload();
+                                                } catch (e) {
+                                                    alert('Failed to cancel simulation');
+                                                }
+                                            }
+                                        }}
+                                        className="inline-flex font-semibold items-center gap-2 border border-red-200 bg-red-50 text-red-600 px-4 py-2 hover:bg-red-100 transition-colors"
+                                    >
+                                        <XCircle className="w-4 h-4" />
+                                        Cancel Simulation
+                                    </button>
                                 </div>
                             </>
                         )}
@@ -427,6 +448,74 @@ export default function SimulationResultsPage() {
                                     </div>
                                 </div>
                             </section>
+
+                            {/* KANTAR-LIKE ADVANCED METRICS */}
+                            {results.agent_states && results.agent_states.length > 0 && (
+                                <>
+                                    <section className="border border-slate-200 bg-white p-5">
+                                        <h3 className="text-xl font-bold mb-4">Performance & effectiveness</h3>
+                                        <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
+                                            {[
+                                                { label: 'Communication awareness', value: (() => { const nonNeutral = results.agent_states.filter((a: any) => a.opinion !== 'NEUTRAL').length; return Math.round((nonNeutral / results.agent_states.length) * 100); })() },
+                                                { label: 'Branded memorability', value: (() => { const intense = results.agent_states.filter((a: any) => a.emotion_intensity > 0.5).length; return Math.round((intense / results.agent_states.length) * 100); })() },
+                                                { label: 'Remembered reach', value: (() => { const positive = results.agent_states.filter((a: any) => a.opinion === 'POSITIVE').length; return Math.round((positive / results.agent_states.length) * 100); })() },
+                                                { label: 'Active engagement', value: (() => { const active = results.agent_states.filter((a: any) => ['BOYCOTT', 'ENDORSEMENT'].includes(a.event_type) || a.emotion_intensity > 0.7).length; return Math.round((active / results.agent_states.length) * 100); })() },
+                                            ].map((metric, i) => (
+                                                <div key={i} className="border border-slate-200 p-4 relative overflow-hidden group">
+                                                    <div className="flex justify-between items-start mb-2">
+                                                        <span className="text-3xl font-bold text-slate-800">{metric.value}</span>
+                                                        <Activity className="w-4 h-4 text-slate-400 group-hover:text-amber-500 transition-colors" />
+                                                    </div>
+                                                    <p className="text-xs font-semibold text-slate-500 uppercase tracking-wide">{metric.label}</p>
+                                                    <div className="absolute bottom-0 left-0 h-1 bg-amber-400" style={{ width: `${metric.value}%` }} />
+                                                </div>
+                                            ))}
+                                        </div>
+                                    </section>
+
+                                    <section className="border border-slate-200 bg-white p-5">
+                                        <h3 className="text-xl font-bold mb-4">Involvement diagnosis</h3>
+                                        <div className="w-full h-[400px] flex items-center justify-center">
+                                            {(() => {
+                                                let involving = 0, interesting = 0, pleasant = 0, boring = 0, unpleasant = 0, irritating = 0, touching = 0;
+                                                results.agent_states.forEach((s: any) => {
+                                                    const emotion = (s.emotion || 'neutral').toLowerCase();
+                                                    const intensity = s.emotion_intensity || 0;
+                                                    if (intensity > 0.6) involving += 1;
+                                                    if (intensity > 0.4 && ['happy', 'neutral'].includes(emotion)) interesting += 1;
+                                                    if (emotion === 'happy') { pleasant += 1; touching += intensity; }
+                                                    if (emotion === 'neutral' && intensity < 0.3) boring += 1;
+                                                    if (emotion === 'angry') { irritating += 1; unpleasant += intensity; }
+                                                    if (emotion === 'sad') { unpleasant += 1; touching += intensity; }
+                                                });
+                                                const t = results.agent_states.length || 1;
+                                                const radarData = [
+                                                    { subject: 'Involving', value: Math.min(100, Math.round((involving / t) * 100)) },
+                                                    { subject: 'Pleasant', value: Math.min(100, Math.round((pleasant / t) * 100)) },
+                                                    { subject: 'Interesting', value: Math.min(100, Math.round((interesting / t) * 100)) },
+                                                    { subject: 'Touching', value: Math.min(100, Math.round((touching / t) * 100)) },
+                                                    { subject: 'Irritating', value: Math.min(100, Math.round((irritating / t) * 100)) },
+                                                    { subject: 'Unpleasant', value: Math.min(100, Math.round((unpleasant / t) * 100)) },
+                                                    { subject: 'Boring', value: Math.min(100, Math.round((boring / t) * 100)) },
+                                                ];
+                                                return (
+                                                    <ResponsiveContainer width="100%" height="100%">
+                                                        <RadarChart cx="50%" cy="50%" outerRadius="70%" data={radarData}>
+                                                            <PolarGrid stroke="#e2e8f0" />
+                                                            <PolarAngleAxis dataKey="subject" tick={{ fill: '#64748b', fontSize: 12, fontWeight: 600 }} />
+                                                            <PolarRadiusAxis angle={30} domain={[0, 100]} tick={{ fill: '#94a3b8' }} />
+                                                            <Radar name="Agents" dataKey="value" stroke="#8b5cf6" fill="#8b5cf6" fillOpacity={0.4} />
+                                                        </RadarChart>
+                                                    </ResponsiveContainer>
+                                                );
+                                            })()}
+                                        </div>
+                                        <p className="text-xs text-slate-500 mt-4 text-center">
+                                            A diagnostic plot showing emotional mappings to advertising reception constructs.
+                                        </p>
+                                    </section>
+                                </>
+                            )}
 
                             {/* Opinion Trajectory Chart */}
                             {results.opinion_trajectory && Object.keys(results.opinion_trajectory).length > 0 && (
