@@ -2,6 +2,31 @@
 @tailwind components;
 @tailwind utilities;
 
+@font-face {
+    font-family: "SF Pro";
+    src: url("https://db.onlinewebfonts.com/t/4b57277e89dfdd30c9a6b69acaf78d3a.eot");
+    src: url("https://db.onlinewebfonts.com/t/4b57277e89dfdd30c9a6b69acaf78d3a.eot?#iefix") format("embedded-opentype"),
+    url("https://db.onlinewebfonts.com/t/4b57277e89dfdd30c9a6b69acaf78d3a.woff2") format("woff2"),
+    url("https://db.onlinewebfonts.com/t/4b57277e89dfdd30c9a6b69acaf78d3a.woff") format("woff"),
+    url("https://db.onlinewebfonts.com/t/4b57277e89dfdd30c9a6b69acaf78d3a.ttf") format("truetype"),
+    url("https://db.onlinewebfonts.com/t/4b57277e89dfdd30c9a6b69acaf78d3a.svg#SF Pro") format("svg");
+}
+
+@font-face {
+    font-family: "SF Pro Text";
+    src: url("https://db.onlinewebfonts.com/t/a936eebbc2f331a2b3868a9e32a31152.eot");
+    src: url("https://db.onlinewebfonts.com/t/a936eebbc2f331a2b3868a9e32a31152.eot?#iefix") format("embedded-opentype"),
+    url("https://db.onlinewebfonts.com/t/a936eebbc2f331a2b3868a9e32a31152.woff2") format("woff2"),
+    url("https://db.onlinewebfonts.com/t/a936eebbc2f331a2b3868a9e32a31152.woff") format("woff"),
+    url("https://db.onlinewebfonts.com/t/a936eebbc2f331a2b3868a9e32a31152.ttf") format("truetype"),
+    url("https://db.onlinewebfonts.com/t/a936eebbc2f331a2b3868a9e32a31152.svg#SF Pro Text") format("svg");
+}
+
+/* Apply SF Pro to all table column headers implicitly globally */
+th {
+    font-family: "SF Pro", sans-serif;
+}
+
 :root {
   --foreground-rgb: 255, 255, 255;
   --background-start-rgb: 15, 23, 42;
