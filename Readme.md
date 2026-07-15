@@ -161,7 +161,7 @@ cp compose/backend/.env.local compose/backend/.env
 
 Container overrides in compose/dockercompose.yml set:
 
-- DATABASE_URL=postgresql://agentsociety:dev_password@postgres:5432/agentsociety_db
+- DATABASE_URL=postgresql://agentsociety:dev_password@localhost:5433/agentsociety_db
 - REDIS_URL=redis://redis:6379/0
 - CHROMA_HOST=chromadb
 - CHROMA_PORT=8000

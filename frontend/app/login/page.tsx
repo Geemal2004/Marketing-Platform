@@ -6,12 +6,39 @@ import Link from 'next/link';
 import { authApi, getStoredToken } from '@/lib/api';
 import { useAuthStore } from '@/lib/store';
 
+const extractErrorMessages = (err: any, fallback: string): string | string[] => {
+    const detail = err?.response?.data?.detail;
+
+    if (Array.isArray(detail)) {
+        const messages = detail
+            .map((item) => {
+                if (typeof item === 'string') return item;
+                if (item && typeof item === 'object') {
+                    return item.msg || item.message || '';
+                }
+                return '';
+            })
+            .filter((message) => message.length > 0);
+
+        if (messages.length > 0) return messages;
+    }
+
+    if (typeof detail === 'string' && detail.length > 0) return detail;
+    if (detail && typeof detail === 'object') {
+        const message = detail.msg || detail.message;
+        if (typeof message === 'string' && message.length > 0) return message;
+    }
+
+    if (typeof err?.message === 'string' && err.message.length > 0) return err.message;
+    return fallback;
+};
+
 export default function LoginPage() {
     const [formData, setFormData] = useState({
         email: '',
         password: '',
     });
-    const [error, setError] = useState('');
+    const [error, setError] = useState<string | string[]>('');
     const [loading, setLoading] = useState(false);
 
     const router = useRouter();
@@ -20,7 +47,9 @@ export default function LoginPage() {
     const handleLogin = async (e: React.FormEvent) => {
         e.preventDefault();
 
-        if (!formData.email || !formData.password) {
+        const trimmedEmail = formData.email.trim();
+
+        if (!trimmedEmail || !formData.password) {
             setError('Please fill all the fields');
             return;
         }
@@ -29,7 +58,7 @@ export default function LoginPage() {
         setLoading(true);
 
         try {
-            await authApi.login(formData.email, formData.password);
+            await authApi.login(trimmedEmail, formData.password);
             if (!getStoredToken()) {
                 throw new Error('Token was not stored after login');
             }
@@ -42,7 +71,7 @@ export default function LoginPage() {
 
             router.push('/dashboard');
         } catch (err: any) {
-            setError(err.response?.data?.detail || 'Login failed. Please try again.');
+            setError(extractErrorMessages(err, 'Login failed. Please try again.'));
         } finally {
             setLoading(false);
         }
@@ -80,7 +109,15 @@ export default function LoginPage() {
 
                         {error && (
                             <div className="mb-4 p-3 rounded-lg bg-red-100 border border-red-400 text-red-700 text-sm">
-                                {error}
+                                {Array.isArray(error) ? (
+                                    <ul className="list-disc pl-5">
+                                        {error.map((message, index) => (
+                                            <li key={`${index}-${message}`}>{message}</li>
+                                        ))}
+                                    </ul>
+                                ) : (
+                                    error
+                                )}
                             </div>
                         )}
 
