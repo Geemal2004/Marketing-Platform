@@ -1,9 +1,8 @@
 """
-LLM client using Qwen model via HuggingFace Space (Ollama-compatible API)
-with Ray actor pool for parallel processing.
+LLM client using Ollama Cloud chat API with a Ray actor pool.
 
 Architecture:
-- Each Ray actor makes HTTP requests to the Qwen Ollama endpoint
+- Each Ray actor makes HTTP requests to the Ollama endpoint
 - Actor pool distributes requests with round-robin
 - Robust retry with exponential backoff
 """
@@ -12,7 +11,6 @@ import random
 import time
 import asyncio
 import logging
-import json
 from pathlib import Path
 from typing import Optional
 from multiprocessing import cpu_count
@@ -34,9 +32,9 @@ for env_path in env_paths:
 
 logger = logging.getLogger(__name__)
 
-# Default Qwen API configuration
-DEFAULT_QWEN_API_URL = "https://vish85521-qwen.hf.space/api/generate"
-DEFAULT_QWEN_MODEL = "qwen3.5:397b-cloud"
+# Default Ollama Cloud API configuration
+DEFAULT_OLLAMA_API_URL = "https://ollama.com/api/chat"
+DEFAULT_OLLAMA_MODEL = "gemma4:31b-cloud"
 
 
 def _clean_env(name: str, default: str = "") -> str:
@@ -45,27 +43,41 @@ def _clean_env(name: str, default: str = "") -> str:
 
 
 @ray.remote
-class QwenActor:
+class OllamaActor:
     """
-    Ray actor that sends requests to a Qwen model via Ollama-compatible HTTP API.
+    Ray actor that sends requests to Ollama's chat API.
 
-    Makes HTTP POST requests to the HuggingFace Space endpoint.
-    Supports streaming NDJSON responses.
+    QwenActor is kept as a backward-compatible alias below.
     """
 
     def __init__(self):
         """Initialize with API config from environment."""
-        self._api_url = _clean_env("QWEN_API_URL", DEFAULT_QWEN_API_URL)
-        self._model_name = _clean_env("QWEN_MODEL_NAME", DEFAULT_QWEN_MODEL)
+        self._api_url = _clean_env(
+            "OLLAMA_API_URL",
+            DEFAULT_OLLAMA_API_URL,
+        )
+        self._model_name = _clean_env(
+            "OLLAMA_MODEL_NAME",
+            DEFAULT_OLLAMA_MODEL,
+        )
+        self._api_key = (
+            _clean_env("OLLAMA_API_KEY", "")
+            or _clean_env("OLLAMA_KEY", "")
+        )
         self._session = requests.Session()
-        self._session.headers.update({"Content-Type": "application/json"})
+        self._session.headers.update({
+            "Accept": "application/json",
+            "Content-Type": "application/json",
+        })
+        if self._api_key:
+            self._session.headers["Authorization"] = f"Bearer {self._api_key}"
+        else:
+            print("[OllamaActor] Warning: OLLAMA_API_KEY is not set")
 
-        # Optional: HuggingFace token for private spaces
-        hf_token = _clean_env("HF_TOKEN", "")
-        if hf_token:
-            self._session.headers["Authorization"] = f"Bearer {hf_token}"
-
-        print(f"[QwenActor] Initialized — endpoint: {self._api_url}, model: {self._model_name}")
+        print(
+            f"[OllamaActor] Initialized - endpoint: {self._api_url}, "
+            f"model: {self._model_name}"
+        )
 
     def call(
         self,
@@ -76,11 +88,11 @@ class QwenActor:
         retries: int = 5,
     ) -> str:
         """
-        Send a request to the Qwen Ollama API with retry and exponential backoff.
+        Send a request to Ollama with retry and exponential backoff.
 
         Args:
             prompt: The prompt to send
-            max_tokens: Maximum tokens to generate (passed as num_predict)
+            max_tokens: Maximum tokens to generate
             temperature: Sampling temperature
             model_name: Override model name (uses env default if None)
             retries: Number of retries on failure
@@ -93,21 +105,27 @@ class QwenActor:
 
         for attempt in range(retries):
             try:
-                print(f"[QwenActor] Attempt {attempt + 1}/{retries} calling {model}...")
+                print(f"[OllamaActor] Attempt {attempt + 1}/{retries} calling {model}...")
 
                 payload = {
                     "model": model,
-                    "prompt": prompt,
-                    "stream": True,
-                    "format": "json",
-                    "think": False
+                    "messages": [
+                        {
+                            "role": "user",
+                            "content": prompt,
+                        }
+                    ],
+                    "stream": False,
+                    "options": {
+                        "temperature": temperature,
+                        "num_predict": max_tokens,
+                    },
                 }
 
                 response = self._session.post(
                     self._api_url,
                     json=payload,
-                    stream=True,
-                    timeout=180,  # 3 minute timeout (free CPU is slow)
+                    timeout=180,
                 )
 
                 if response.status_code != 200:
@@ -115,48 +133,23 @@ class QwenActor:
                         f"HTTP {response.status_code}: {response.text[:200]}"
                     )
 
-                # Parse streaming NDJSON response
-                full_response = ""
-                full_thinking = ""
-                for line in response.iter_lines():
-                    if not line:
-                        continue
-                        
-                    if isinstance(line, bytes):
-                        line_str = line.decode('utf-8', errors='replace').strip()
-                    else:
-                        line_str = line.strip()
-                        
-                    if not line_str:
-                        continue
-                        
-                    try:
-                        data = json.loads(line_str)
-                        if data.get("response"):
-                            full_response += data["response"]
-                        if data.get("thinking"):
-                            full_thinking += data["thinking"]
-                    except json.JSONDecodeError:
-                        continue
+                data = response.json()
+                content = self._extract_chat_content(data)
 
-                if full_response:
+                if content:
                     print(
-                        f"[QwenActor] Success! Response: {len(full_response)} chars"
+                        f"[OllamaActor] Success! Response: {len(content)} chars"
                     )
-                    return full_response
-                elif full_thinking and not full_response:
-                     # Fallback in case it refused the JSON format and only gave thinking
-                     print(f"[QwenActor] Warning: Got {len(full_thinking)} chars of thinking but no response string. Returning thinking instead.")
-                     return full_thinking
-                else:
-                    print("[QwenActor] Empty response from model")
-                    return ""
+                    return content
+
+                print("[OllamaActor] Empty response from model")
+                return ""
 
             except Exception as e:
                 last_error = e
                 wait_time = min(60, (2 ** attempt) + random.random() * 2)
                 print(
-                    f"[QwenActor] Error (attempt {attempt + 1}/{retries}), "
+                    f"[OllamaActor] Error (attempt {attempt + 1}/{retries}), "
                     f"waiting {wait_time:.1f}s: {e}"
                 )
                 if attempt < retries - 1:
@@ -169,13 +162,47 @@ class QwenActor:
             raise last_error
         return ""
 
+    @staticmethod
+    def _extract_chat_content(data: dict) -> str:
+        """Extract assistant content from an Ollama chat response."""
+        # Native Ollama: {"message": {"role": "assistant", "content": "..."}}
+        message = data.get("message") or {}
+        content = message.get("content", "")
+        if isinstance(content, str) and content.strip():
+            return content.strip()
 
-class QwenLLM:
+        # OpenAI-compatible fallback: {"choices": [{"message": {"content": "..."}}]}
+        choices = data.get("choices") or []
+        if choices:
+            choice_message = choices[0].get("message") or {}
+            choice_content = choice_message.get("content", "")
+            if isinstance(choice_content, str):
+                return choice_content.strip()
+            if isinstance(choice_content, list):
+                parts = []
+                for item in choice_content:
+                    if isinstance(item, dict):
+                        text = item.get("text") or item.get("content")
+                        if text:
+                            parts.append(str(text))
+                    elif item:
+                        parts.append(str(item))
+                return "".join(parts).strip()
+
+        # /api/generate style fallback
+        response_text = data.get("response", "")
+        if isinstance(response_text, str) and response_text.strip():
+            return response_text.strip()
+
+        return str(content).strip() if content else ""
+
+
+class OllamaLLM:
     """
-    Manages a pool of QwenActor Ray actors for parallel LLM requests.
+    Manages a pool of Ollama Ray actors for parallel LLM requests.
 
     Usage:
-        llm = QwenLLM(num_actors=2)
+        llm = OllamaLLM(num_actors=2)
         result = await llm.atext_request("Hello world")
         # or synchronously:
         result = llm.text_request("Hello world")
@@ -192,9 +219,9 @@ class QwenLLM:
         if num_actors is None:
             num_actors = min(cpu_count(), 4)
 
-        self._actors = [QwenActor.remote() for _ in range(num_actors)]
+        self._actors = [OllamaActor.remote() for _ in range(num_actors)]
         self._next_index = 0
-        logger.info(f"QwenLLM initialized with {num_actors} actors")
+        logger.info(f"OllamaLLM initialized with {num_actors} actors")
 
     def _get_next_actor(self):
         """Round-robin actor selection"""
@@ -288,14 +315,18 @@ class QwenLLM:
 # ---------------------------------------------------------------------------
 # Backward-compatible convenience functions
 # ---------------------------------------------------------------------------
-_llm_pool: Optional[QwenLLM] = None
+QwenActor = OllamaActor
+QwenLLM = OllamaLLM
 
 
-def get_llm_pool(num_actors: int = None) -> QwenLLM:
+_llm_pool: Optional[OllamaLLM] = None
+
+
+def get_llm_pool(num_actors: int = None) -> OllamaLLM:
     """Get or create the global LLM actor pool"""
     global _llm_pool
     if _llm_pool is None:
-        _llm_pool = QwenLLM(num_actors=num_actors)
+        _llm_pool = OllamaLLM(num_actors=num_actors)
     return _llm_pool
 
 

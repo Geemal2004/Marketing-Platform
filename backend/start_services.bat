@@ -6,6 +6,7 @@ REM This script starts all required services for the platform:
 REM   1. FastAPI Backend (API server)
 REM   2. Celery Worker (VLM video processing)
 REM   3. Ray Simulation Worker (Agent simulation)
+REM   4. Frontend (Next.js)
 REM ============================================================
 
 echo ============================================================
@@ -13,12 +14,14 @@ echo        AgentSociety Platform - Starting Services
 echo ============================================================
 echo.
 
-REM Load backend\.env values into this shell so FastAPI, Celery, and the
-REM simulation worker all use the same configuration.
+REM Load backend\.env into this shell (file values always win over prior shell vars).
 if exist "%~dp0.env" (
     for /f "usebackq eol=# tokens=1,* delims==" %%A in ("%~dp0.env") do (
-        if not defined %%A set "%%A=%%B"
+        if not "%%A"=="" if not "%%A"=="EOF" set "%%A=%%B"
     )
+    echo Loaded environment from %~dp0.env
+) else (
+    echo WARNING: %~dp0.env not found
 )
 
 REM Local development defaults. Values in backend\.env or the current shell win.
@@ -100,10 +103,15 @@ exit /b 1
 
 :docker_deps_done
 
-REM Terminal 1: FastAPI Backend
-echo [1/4] Starting FastAPI Backend on http://localhost:8001
-start "Backend - FastAPI" cmd /k "cd /d %~dp0 && venv\Scripts\activate && cd backend && uvicorn app.main:app --reload --port 8001"
-timeout /t 2 /nobreak > nul
+REM Terminal 1: FastAPI Backend (port 8011 — avoids zombie listeners on 8001)
+echo [1/4] Starting FastAPI Backend on http://localhost:8011
+start "Backend - FastAPI" cmd /k "cd /d %~dp0 && start_api_8011.bat"
+
+echo Waiting for backend to become ready on http://localhost:8011/health...
+powershell -NoProfile -ExecutionPolicy Bypass -Command "$deadline=(Get-Date).AddSeconds(60); while((Get-Date) -lt $deadline){ try { $r = Invoke-WebRequest -Uri 'http://127.0.0.1:8011/health' -UseBasicParsing -TimeoutSec 2; if($r.Content -match 'Geemal204'){ exit 0 } } catch {}; Start-Sleep -Seconds 1 }; exit 1"
+if errorlevel 1 goto backend_wait_failed
+echo Backend is ready.
+echo.
 
 REM Terminal 2: Celery Worker (VLM Processing)
 echo [2/4] Starting Celery Worker (VLM Processing)
@@ -126,9 +134,9 @@ echo ============================================================
 echo.
 echo Service URLs:
 echo   - Frontend:      http://localhost:3000
-echo   - Backend API:   http://localhost:8001
-echo   - API Docs:      http://localhost:8001/docs
-echo.
+echo   - Backend API:   http://localhost:8011
+echo   - API Docs:      http://localhost:8011/docs
+echo   - Health check:  http://127.0.0.1:8011/health  (must show Geemal204/Marketing)
 echo Architecture:
 echo   - Celery Worker: Handles video processing (VLM)
 echo   - Ray Worker:    Handles agent simulations
@@ -138,3 +146,11 @@ echo or press Ctrl+C in each terminal.
 echo ============================================================
 echo.
 pause
+exit /b 0
+
+:backend_wait_failed
+echo.
+echo ERROR: Backend did not become ready on http://localhost:8011/health within 60 seconds.
+echo Check the "Backend - FastAPI" terminal window for errors.
+pause
+exit /b 1

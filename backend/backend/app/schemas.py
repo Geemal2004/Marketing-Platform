@@ -92,10 +92,12 @@ class ProjectContextUpdate(BaseModel):
 class ProjectResponse(BaseModel):
     id: UUID
     title: str
-    video_path: str
-    video_duration_seconds: Optional[int]
-    vlm_generated_context: Optional[str]
-    demographic_filter: Optional[Dict[str, Any]]
+    video_path: Optional[str] = None
+    video_duration_seconds: Optional[int] = None
+    media_subtype: str = "video_ad"
+    media_modality: str = "video"
+    vlm_generated_context: Optional[str] = None
+    demographic_filter: Optional[Dict[str, Any]] = None
     status: str
     created_at: datetime
 
@@ -109,6 +111,8 @@ class ProjectListResponse(BaseModel):
     status: str
     created_at: datetime
     video_path: Optional[str] = None
+    media_subtype: Optional[str] = "video_ad"
+    media_modality: Optional[str] = "video"
 
     class Config:
         from_attributes = True

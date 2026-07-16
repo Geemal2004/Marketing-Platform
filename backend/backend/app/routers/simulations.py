@@ -27,7 +27,7 @@ router = APIRouter(prefix="/simulations", tags=["Simulations"])
 
 
 @router.post("/{project_id}/start", response_model=SimulationResponse)
-async def start_simulation(
+def start_simulation(
     project_id: str,
     config: SimulationCreate = None,
     current_user: User = Depends(get_current_user),
@@ -86,7 +86,7 @@ async def start_simulation(
 
 
 @router.get("/{simulation_id}", response_model=SimulationResponse)
-async def get_simulation(
+def get_simulation(
     simulation_id: str,
     current_user: User = Depends(get_current_user),
     db: Session = Depends(get_db)
@@ -108,7 +108,7 @@ async def get_simulation(
 
 
 @router.post("/{simulation_id}/cancel")
-async def cancel_simulation(
+def cancel_simulation(
     simulation_id: str,
     current_user: User = Depends(get_current_user),
     db: Session = Depends(get_db)
@@ -150,7 +150,7 @@ async def cancel_simulation(
 
 
 @router.get("/{simulation_id}/status", response_model=SimulationStatusResponse)
-async def get_simulation_status(
+def get_simulation_status(
     simulation_id: str,
     current_user: User = Depends(get_current_user),
     db: Session = Depends(get_db)
@@ -201,7 +201,7 @@ async def get_simulation_status(
 
 
 @router.get("/{simulation_id}/results", response_model=SimulationResultsResponse)
-async def get_simulation_results(
+def get_simulation_results(
     simulation_id: str,
     current_user: User = Depends(get_current_user),
     db: Session = Depends(get_db)
@@ -257,7 +257,7 @@ async def get_simulation_results(
 
 
 @router.get("/project/{project_id}", response_model=List[SimulationResponse])
-async def list_project_simulations(
+def list_project_simulations(
     project_id: str,
     current_user: User = Depends(get_current_user),
     db: Session = Depends(get_db)
@@ -284,7 +284,7 @@ async def list_project_simulations(
 
 
 @router.get("/{simulation_id}/map-data", response_model=MapDataResponse)
-async def get_simulation_map_data(
+def get_simulation_map_data(
     simulation_id: str,
     current_user: User = Depends(get_current_user),
     db: Session = Depends(get_db)
@@ -315,7 +315,7 @@ async def get_simulation_map_data(
 
 
 @router.get("/{simulation_id}/agents/{agent_id}", response_model=AgentDetailResponse)
-async def get_agent_detail(
+def get_agent_detail(
     simulation_id: str,
     agent_id: str,
     current_user: User = Depends(get_current_user),
@@ -384,7 +384,7 @@ async def get_agent_detail(
 
 
 @router.get("/{simulation_id}/report")
-async def download_simulation_report(
+def download_simulation_report(
     simulation_id: str,
     current_user: User = Depends(get_current_user),
     db: Session = Depends(get_db)

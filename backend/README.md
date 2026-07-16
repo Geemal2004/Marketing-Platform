@@ -49,8 +49,24 @@ Defined in [backend/app/routers/projects.py](backend/app/routers/projects.py):
 
 Notes:
 
-- Project video upload validates extension and size.
-- Video files are uploaded to Hugging Face storage through hf_storage service.
+- Project create accepts `media_subtype` plus either a `media` file (or legacy `video`) or pasted `text_content` for email/blog subtypes.
+- Supported subtypes: `video_ad`, `print_ad`, `display_banner`, `ooh`, `radio_ad`, `streaming_audio_ad`, `email_marketing`, `blog_article`.
+- Files are uploaded to Hugging Face storage through the hf_storage service (modality prefixes: videos/, images/, audio/, text/).
+- Celery `process_media_task` decomposes media via Gemini (or extracts/passthrough for text) into `vlm_generated_context`.
+
+### Existing database migration
+
+On API startup the app attempts additive PostgreSQL alters. If you manage schema manually:
+
+```sql
+ALTER TABLE projects ADD COLUMN IF NOT EXISTS media_subtype VARCHAR(50) DEFAULT 'video_ad';
+ALTER TABLE projects ADD COLUMN IF NOT EXISTS media_modality VARCHAR(20) DEFAULT 'video';
+ALTER TABLE projects ALTER COLUMN video_path DROP NOT NULL;
+UPDATE projects SET media_subtype = 'video_ad' WHERE media_subtype IS NULL;
+UPDATE projects SET media_modality = 'video' WHERE media_modality IS NULL;
+```
+
+Also install text-extraction deps if needed: `pypdf`, `python-docx` (listed in requirements.txt).
 
 ### Simulations
 
@@ -115,7 +131,7 @@ Important variables:
 - REDIS_URL
 - CHROMA_HOST / CHROMA_PORT / CHROMA_SSL
 - GEMINI_API_KEY / GEMINI_API_KEYS
-- QWEN_API_URL / QWEN_MODEL_NAME
+- OLLAMA_API_URL / OLLAMA_MODEL_NAME / OLLAMA_API_KEY
 - HF_ACCESS_TOKEN and video repository settings
 - JWT_SECRET / JWT_ALGORITHM / JWT_EXPIRY_HOURS
 

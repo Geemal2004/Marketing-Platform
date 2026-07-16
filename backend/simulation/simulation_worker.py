@@ -75,11 +75,15 @@ class SimulationWorker:
                 self.redis_url,
                 ssl_cert_reqs=ssl_module.CERT_REQUIRED,
                 socket_keepalive=True,
+                socket_connect_timeout=5,
+                socket_timeout=5,
                 health_check_interval=30,
             )
         return redis.from_url(
             self.redis_url,
             socket_keepalive=True,
+            socket_connect_timeout=5,
+            socket_timeout=5,
             health_check_interval=30,
         )
 

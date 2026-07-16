@@ -2,7 +2,7 @@
 SocialAgent - AI agent behavior for ad reaction simulation.
 
 No longer a Ray actor — agents are plain Python objects.
-LLM calls go through a shared QwenLLM actor pool (Ray-backed, Ollama API).
+LLM calls go through a shared QwenLLM actor pool (Ray-backed, Ollama Cloud API).
 This follows AgentSociety's pattern where agents are regular objects
 and only LLM calls are distributed via Ray actors.
 """
@@ -45,7 +45,7 @@ class SocialAgent:
             agent_id: Unique identifier
             profile: Demographics and values dict
             experiment_id: Experiment this agent belongs to
-            llm_pool: QwenLLM actor pool for LLM calls
+            llm_pool: QwenLLM-compatible actor pool for LLM calls
             friends: List of friend agent IDs
             memory_store: Optional AgentMemoryStore instance (shared)
         """
@@ -205,10 +205,15 @@ values, religion, and social context when forming your opinion.
 Strong reactions should reflect genuine conflicts or alignments 
 with your identity and values.
 
+Pay special attention to:
+- The brand and product being advertised — do you recognise them? Do you already like, dislike, trust, or ignore this brand?
+- Any famous people (actors, sportspeople, singers, influencers) in the ad — does that person matter to you personally (fan, indifferent, dislike)?
+- Whether celebrity endorsement or strong branding makes you more interested, suspicious, or unmoved.
+
 Analyze your reaction as this person:
 1. How does this ad make you FEEL? (Choose one: HAPPY, ANGRY, SAD, NEUTRAL)
 2. What is your OPINION? (Choose one: POSITIVE, NEUTRAL, NEGATIVE)
-3. WHY do you feel this way? (2-3 sentences from YOUR perspective as this person)
+3. WHY do you feel this way? (2-3 sentences from YOUR perspective as this person — mention the brand and any celebrity if they influenced you)
 
 You MUST respond in this JSON format:
 {{"emotion": "ANGRY", "opinion": "NEGATIVE", "reasoning": "This ad shows something I disagree with because..."}}"""

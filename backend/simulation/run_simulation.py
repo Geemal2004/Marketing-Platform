@@ -2,7 +2,7 @@
 Simulation orchestrator - manages large-scale agent simulations.
 
 Uses async patterns inspired by AgentSociety:
-- QwenLLM actor pool for distributed LLM calls (via HuggingFace Space Ollama API)
+- QwenLLM actor pool for distributed LLM calls (via Ollama Cloud chat API)
 - asyncio.gather() for concurrent agent processing
 - Agents are plain objects, not Ray actors
 """
@@ -30,7 +30,7 @@ class SimulationOrchestrator:
     Orchestrate large-scale agent simulations.
 
     Manages:
-    - LLM actor pool (Ray-backed, Qwen via Ollama API)
+    - LLM actor pool (Ray-backed, Ollama Cloud chat API)
     - Agent spawning (plain objects)
     - Ad content distribution
     - Result collection and analysis
@@ -91,7 +91,7 @@ class SimulationOrchestrator:
             # Initialize Ray cluster
             init_ray_cluster(num_cpus=None)
 
-            # Create LLM actor pool (Qwen via Ollama API)
+            # Create LLM actor pool (Ollama Cloud chat API)
             num_actors = min(4, max(1, self.num_agents // 3))
             self.llm_pool = QwenLLM(num_actors=num_actors)
             logger.info(f"LLM actor pool created with {num_actors} actors")
@@ -206,8 +206,7 @@ class SimulationOrchestrator:
         """
         logger.info("Broadcasting ad content to all agents...")
 
-        # Qwen HF Space has no per-minute rate limits, but responses are slow
-        # (~30-60s per request on free CPU). Using batch_size=3 with 2s delay.
+        # Keep batches small to avoid overloading the external LLM endpoint.
         batch_size = 3
         batch_delay = 2
         all_states = []
@@ -215,7 +214,7 @@ class SimulationOrchestrator:
         total_batches = (len(self.agents) + batch_size - 1) // batch_size
         logger.info(
             f"Processing {len(self.agents)} agents in {total_batches} "
-            f"batches (Qwen via Ollama API)"
+            f"batches (Ollama Cloud chat API)"
         )
 
         for i in range(0, len(self.agents), batch_size):

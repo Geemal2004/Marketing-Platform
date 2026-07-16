@@ -12,7 +12,7 @@ from app.services.auth_service import decode_access_token
 security = HTTPBearer()
 
 
-async def get_current_user(
+def get_current_user(
     credentials: HTTPAuthorizationCredentials = Depends(security),
     db: Session = Depends(get_db)
 ) -> User:

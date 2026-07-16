@@ -47,55 +47,58 @@ if settings.redis_url.startswith("rediss://"):
 
 
 @celery_app.task(bind=True)
-def process_video_task(self, project_id: str):
+def process_media_task(self, project_id: str):
     """
-    Background task to process video with VLM
+    Background task to decompose project media into a text brief (Gemini VLM / extract).
     """
     from app.database import SessionLocal
     from app.models import Project
-    from app.services.vlm_service import process_video
-    
+    from app.services.vlm_service import process_media
+
     db = None
-    
+
     try:
         db = SessionLocal()
-        # Get project
         project = db.query(Project).filter(Project.id == project_id).first()
         if not project:
             logger.error(f"Project not found: {project_id}")
             return {"error": "Project not found"}
-        
-        # Update status
+
         project.status = "PROCESSING"
-        video_path = project.video_path
+        media_path = project.video_path
+        modality = getattr(project, "media_modality", None) or "video"
+        subtype = getattr(project, "media_subtype", None) or "video_ad"
         db.commit()
         db.close()
-        
-        logger.info(f"Processing video for project {project_id}")
-        
-        # Process video
-        descriptions, duration = process_video(video_path)
-        
+        db = None
+
+        logger.info(f"Processing media for project {project_id} ({subtype}/{modality})")
+
+        descriptions, duration = process_media(
+            media_path=media_path,
+            modality=modality,
+            subtype=subtype,
+        )
+
         db = SessionLocal()
         project = db.query(Project).filter(Project.id == project_id).first()
-        
-        # Update project with results
+
         if project:
             project.vlm_generated_context = descriptions
             project.video_duration_seconds = duration
             project.status = "READY"
             db.commit()
-        
-        logger.info(f"Video processing complete for project {project_id}")
-        
+
+        logger.info(f"Media processing complete for project {project_id}")
+
         return {
             "project_id": project_id,
             "status": "READY",
-            "duration": duration
+            "duration": duration,
         }
-        
+
     except Exception as e:
-        logger.error(f"Video processing failed for project {project_id}: {e}")
+        logger.error(f"Media processing failed for project {project_id}: {e}")
         try:
             db_err = SessionLocal()
             project = db_err.query(Project).filter(Project.id == project_id).first()
@@ -103,12 +106,16 @@ def process_video_task(self, project_id: str):
                 project.status = "FAILED"
                 db_err.commit()
             db_err.close()
-        except:
+        except Exception:
             pass
         return {"error": str(e)}
     finally:
         if db is not None:
             db.close()
+
+
+# Backward-compatible alias for imports / older callers
+process_video_task = process_media_task
 
 
 @celery_app.task(bind=True)
@@ -128,7 +135,11 @@ def run_simulation_task(self, simulation_id: str):
     import redis
     
     db = SessionLocal()
-    redis_kwargs = {}
+    redis_kwargs = {
+        "socket_connect_timeout": 5,
+        "socket_timeout": 5,
+        "health_check_interval": 30,
+    }
     if settings.redis_url.startswith("rediss://"):
         redis_kwargs["ssl_cert_reqs"] = ssl_module.CERT_REQUIRED
     
@@ -146,7 +157,7 @@ def run_simulation_task(self, simulation_id: str):
         if not project or not project.vlm_generated_context:
             logger.error(f"Project not ready for simulation: {simulation.project_id}")
             simulation.status = "FAILED"
-            simulation.error_message = "Project video analysis not complete"
+            simulation.error_message = "Project media analysis not complete"
             db.commit()
             return {"error": "Project not ready"}
 

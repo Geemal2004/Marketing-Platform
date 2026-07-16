@@ -59,7 +59,11 @@ class ResultsListener:
             redis_client = None
             pubsub = None
             try:
-                redis_kwargs = {}
+                redis_kwargs = {
+                    "socket_connect_timeout": 5,
+                    "socket_timeout": 5,
+                    "health_check_interval": 30,
+                }
                 if self.redis_url.startswith("rediss://"):
                     redis_kwargs["ssl_cert_reqs"] = ssl_module.CERT_REQUIRED
                 redis_client = redis.from_url(self.redis_url, **redis_kwargs)

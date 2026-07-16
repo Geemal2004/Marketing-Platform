@@ -29,8 +29,11 @@ class Project(Base):
     id = Column(UUID(as_uuid=True), primary_key=True, default=uuid.uuid4)
     user_id = Column(UUID(as_uuid=True), ForeignKey("users.id", ondelete="CASCADE"), nullable=False)
     title = Column(String(255), nullable=False)
-    video_path = Column(String(500), nullable=False)
+    # Stored asset URL (HF). Nullable for paste-only text projects.
+    video_path = Column(String(500), nullable=True)
     video_duration_seconds = Column(Integer, nullable=True)
+    media_subtype = Column(String(50), nullable=False, default="video_ad")
+    media_modality = Column(String(20), nullable=False, default="video")
     vlm_generated_context = Column(Text, nullable=True)
     demographic_filter = Column(JSON, nullable=True)
     status = Column(String(20), default="PENDING")

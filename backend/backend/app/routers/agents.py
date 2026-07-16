@@ -15,7 +15,7 @@ router = APIRouter(prefix="/agents", tags=["Custom Agents"])
 
 
 @router.post("", response_model=CustomAgentResponse, status_code=status.HTTP_201_CREATED)
-async def create_agent(
+def create_agent(
     agent_data: CustomAgentCreate,
     current_user: User = Depends(get_current_user),
     db: Session = Depends(get_db)
@@ -34,7 +34,7 @@ async def create_agent(
 
 
 @router.get("", response_model=List[CustomAgentResponse])
-async def list_agents(
+def list_agents(
     current_user: User = Depends(get_current_user),
     db: Session = Depends(get_db)
 ):
@@ -46,7 +46,7 @@ async def list_agents(
 
 
 @router.get("/{agent_id}", response_model=CustomAgentResponse)
-async def get_agent(
+def get_agent(
     agent_id: UUID,
     current_user: User = Depends(get_current_user),
     db: Session = Depends(get_db)
@@ -66,7 +66,7 @@ async def get_agent(
 
 
 @router.put("/{agent_id}", response_model=CustomAgentResponse)
-async def update_agent(
+def update_agent(
     agent_id: UUID,
     agent_data: CustomAgentCreate,
     current_user: User = Depends(get_current_user),
@@ -92,7 +92,7 @@ async def update_agent(
 
 
 @router.delete("/{agent_id}", status_code=status.HTTP_204_NO_CONTENT)
-async def delete_agent(
+def delete_agent(
     agent_id: UUID,
     current_user: User = Depends(get_current_user),
     db: Session = Depends(get_db)

@@ -44,19 +44,28 @@ def init_ray_cluster(
     else:
         logger.error("GEMINI_API_KEY is NOT set! LLM calls will fail.")
         
-    qwen_api_url = _clean_env("QWEN_API_URL", "")
-    if not qwen_api_url:
-        logger.warning("QWEN_API_URL is not set, using default HuggingFace endpoint")
-        qwen_api_url = "https://vish85521-qwen.hf.space/api/generate"
-        
-    qwen_model_name = _clean_env("QWEN_MODEL_NAME", "qwen3.5:397b-cloud")
+    ollama_api_url = _clean_env("OLLAMA_API_URL", "")
+    if not ollama_api_url:
+        logger.warning("OLLAMA_API_URL is not set, using default Ollama Cloud endpoint")
+        ollama_api_url = "https://ollama.com/api/chat"
+
+    ollama_model_name = _clean_env("OLLAMA_MODEL_NAME", "gemma4:31b-cloud")
+    ollama_api_key = (
+        _clean_env("OLLAMA_API_KEY", "")
+        or _clean_env("OLLAMA_KEY", "")
+    )
+    if ollama_api_key:
+        logger.info("OLLAMA_API_KEY found")
+    else:
+        logger.error("OLLAMA_API_KEY is NOT set! Simulation LLM calls will fail.")
         
     runtime_env = {
         "env_vars": {
             "GEMINI_API_KEY": api_key,
             "GEMINI_API_KEYS": api_keys,
-            "QWEN_API_URL": qwen_api_url,
-            "QWEN_MODEL_NAME": qwen_model_name,
+            "OLLAMA_API_URL": ollama_api_url,
+            "OLLAMA_MODEL_NAME": ollama_model_name,
+            "OLLAMA_API_KEY": ollama_api_key,
         }
     }
 
