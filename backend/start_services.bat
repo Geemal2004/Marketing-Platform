@@ -107,8 +107,8 @@ REM Terminal 1: FastAPI Backend (port 8011 — avoids zombie listeners on 8001)
 echo [1/4] Starting FastAPI Backend on http://localhost:8011
 start "Backend - FastAPI" cmd /k "cd /d %~dp0 && start_api_8011.bat"
 
-echo Waiting for backend to become ready on http://localhost:8011/health...
-powershell -NoProfile -ExecutionPolicy Bypass -Command "$deadline=(Get-Date).AddSeconds(60); while((Get-Date) -lt $deadline){ try { $r = Invoke-WebRequest -Uri 'http://127.0.0.1:8011/health' -UseBasicParsing -TimeoutSec 2; if($r.Content -match 'Geemal204'){ exit 0 } } catch {}; Start-Sleep -Seconds 1 }; exit 1"
+echo Waiting for backend to become ready on http://localhost:8011/...
+powershell -NoProfile -ExecutionPolicy Bypass -Command "$deadline=(Get-Date).AddSeconds(120); while((Get-Date) -lt $deadline){ try { $r = Invoke-WebRequest -Uri 'http://127.0.0.1:8011/' -UseBasicParsing -TimeoutSec 10; if($r.StatusCode -eq 200 -and $r.Content -match 'healthy'){ exit 0 } } catch {}; Start-Sleep -Seconds 2 }; exit 1"
 if errorlevel 1 goto backend_wait_failed
 echo Backend is ready.
 echo.
@@ -136,7 +136,7 @@ echo Service URLs:
 echo   - Frontend:      http://localhost:3000
 echo   - Backend API:   http://localhost:8011
 echo   - API Docs:      http://localhost:8011/docs
-echo   - Health check:  http://127.0.0.1:8011/health  (must show Geemal204/Marketing)
+echo   - Health check:  http://127.0.0.1:8011/  (should return status healthy)
 echo Architecture:
 echo   - Celery Worker: Handles video processing (VLM)
 echo   - Ray Worker:    Handles agent simulations
@@ -150,7 +150,8 @@ exit /b 0
 
 :backend_wait_failed
 echo.
-echo ERROR: Backend did not become ready on http://localhost:8011/health within 60 seconds.
+echo ERROR: Backend did not become ready on http://localhost:8011/ within 120 seconds.
 echo Check the "Backend - FastAPI" terminal window for errors.
+echo Tip: open http://127.0.0.1:8011/ in a browser — it should return status healthy.
 pause
 exit /b 1

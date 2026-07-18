@@ -13,6 +13,7 @@ MEDIA_SUBTYPES: Dict[str, str] = {
     "streaming_audio_ad": "audio",
     "email_marketing": "text",
     "blog_article": "text",
+    "custom": "text",
 }
 
 VIDEO_EXTENSIONS = {".mp4", ".mov", ".avi", ".webm", ".mkv"}
@@ -46,6 +47,7 @@ SUBTYPE_LABELS = {
     "streaming_audio_ad": "Streaming audio advertisement",
     "email_marketing": "Email marketing (newsletter/promotional email)",
     "blog_article": "Blog post / article",
+    "custom": "Custom idea / ideology / concept",
 }
 
 
@@ -273,6 +275,28 @@ Describe / extract:
 4. CTA / LINKS: Calls to action, product mentions, related links if present.
 
 Be exhaustive. Prefer naming brands and public figures over vague descriptions.""",
+
+    "custom": f"""This is a custom user-authored concept: an idea, ideology, product pitch, policy proposal, solution, or hypothetical scenario meant for synthetic audience reaction testing.
+Preserve the author's meaning. Produce a clear plain-text brief agents can react to.
+{LITERAL_PREAMBLE}
+{CELEBRITY_AND_PEOPLE}
+{BRAND_AWARENESS}
+
+Structure the brief as:
+
+1. CONCEPT SUMMARY: What is being proposed or claimed, in plain language.
+
+2. CORE CLAIMS / IDEAS: Key points, values, or beliefs stated by the author.
+
+3. PRODUCT / SOLUTION / BRAND (if any): Names, features, benefits, category — expand with BRAND AWARENESS rules when applicable.
+
+4. PEOPLE / SPOKESPERSONS: Any named individuals or public figures referenced.
+
+5. INTENDED CHANGE OR OUTCOME: What the author wants people to think, feel, buy, support, or do — only if stated or clearly implied by the text itself; do not invent motives.
+
+6. FULL SOURCE TEXT: Include the user's original wording (lightly cleaned for readability) so nothing important is lost.
+
+Be faithful to the input. Do not soften, moralize, or rewrite the ideology.""",
 }
 
 

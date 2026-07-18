@@ -23,6 +23,7 @@ import {
 import { simulationsApi, projectsApi, getStoredToken } from '@/lib/api';
 import OpinionTrajectoryChart from '@/components/OpinionTrajectoryChart';
 import RiskFlagsPanel from '@/components/RiskFlagsPanel';
+import MarkdownContent from '@/components/MarkdownContent';
 
 const AgentMap = dynamic(
     () => import('@/components/AgentMap'),
@@ -376,11 +377,16 @@ export default function SimulationResultsPage() {
                                             </a>
                                         )}
                                         <div className="pt-2 flex-1">
-                                            <p className="text-sm font-semibold text-slate-800">vlm_generated_context</p>
+                                            <p className="text-sm font-semibold text-slate-800">Ad Analysis</p>
                                             <div className="mt-2 h-52 overflow-y-auto border border-slate-200 bg-slate-50 p-3">
-                                                <p className="text-sm text-slate-700 whitespace-pre-wrap leading-6">
-                                                    {project?.vlm_generated_context || 'N/A'}
-                                                </p>
+                                                {project?.vlm_generated_context ? (
+                                                    <MarkdownContent
+                                                        content={project.vlm_generated_context}
+                                                        className="text-sm"
+                                                    />
+                                                ) : (
+                                                    <p className="text-sm text-slate-700">N/A</p>
+                                                )}
                                             </div>
                                         </div>
                                     </div>
@@ -390,11 +396,12 @@ export default function SimulationResultsPage() {
                             {!project?.video_path && project?.vlm_generated_context && (
                                 <div className="border border-slate-200 bg-white p-5">
                                     <h2 className="text-2xl font-bold mb-4">Insights</h2>
-                                    <p className="text-sm font-semibold text-slate-800">vlm_generated_context</p>
+                                    <p className="text-sm font-semibold text-slate-800">Ad Analysis</p>
                                     <div className="mt-2 h-52 overflow-y-auto border border-slate-200 bg-slate-50 p-3">
-                                        <p className="text-sm text-slate-700 whitespace-pre-wrap leading-6">
-                                            {project.vlm_generated_context}
-                                        </p>
+                                        <MarkdownContent
+                                            content={project.vlm_generated_context}
+                                            className="text-sm"
+                                        />
                                     </div>
                                 </div>
                             )}
@@ -542,7 +549,6 @@ export default function SimulationResultsPage() {
                             {/* Opinion Trajectory Chart */}
                             {results.opinion_trajectory && Object.keys(results.opinion_trajectory).length > 0 && (
                                 <div className="border border-slate-200 bg-white p-6">
-                                    <h3 className="text-lg font-semibold mb-4">Opinion Spread Over Time</h3>
                                     <OpinionTrajectoryChart trajectoryData={results.opinion_trajectory} />
                                 </div>
                             )}

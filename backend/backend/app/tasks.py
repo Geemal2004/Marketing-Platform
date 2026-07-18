@@ -240,7 +240,7 @@ def run_simulation_task(self, simulation_id: str):
                 simulation.error_message = str(e)
                 simulation.completed_at = datetime.utcnow()
                 db.commit()
-        except:
+        except Exception:
             pass
         return {"error": str(e)}
     finally:

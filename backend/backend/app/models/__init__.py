@@ -17,10 +17,28 @@ class User(Base):
     password_hash = Column(String(255), nullable=False)
     created_at = Column(DateTime, default=datetime.utcnow)
     subscription_tier = Column(String(20), default="FREE")
+    # Optional columns if present from earlier billing migration (unused; no metering)
+    credits_balance = Column(Integer, nullable=False, default=0)
+    credits_period_start = Column(DateTime, default=datetime.utcnow)
     
     # Relationships
     projects = relationship("Project", back_populates="user", cascade="all, delete-orphan")
     custom_agents = relationship("CustomAgent", back_populates="user", cascade="all, delete-orphan")
+
+
+class CreditTransaction(Base):
+    """Legacy ledger table if created earlier; not used by the API."""
+    __tablename__ = "credit_transactions"
+
+    id = Column(UUID(as_uuid=True), primary_key=True, default=uuid.uuid4)
+    user_id = Column(UUID(as_uuid=True), ForeignKey("users.id", ondelete="CASCADE"), nullable=False)
+    amount = Column(Integer, nullable=False)
+    reason = Column(String(40), nullable=False)
+    reference_type = Column(String(40), nullable=True)
+    reference_id = Column(UUID(as_uuid=True), nullable=True)
+    balance_after = Column(Integer, nullable=False)
+    metadata_json = Column("metadata", JSON, nullable=True)
+    created_at = Column(DateTime, default=datetime.utcnow)
 
 
 class Project(Base):

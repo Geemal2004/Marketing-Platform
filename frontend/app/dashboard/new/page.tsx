@@ -5,7 +5,7 @@ import { useRouter } from 'next/navigation';
 import Link from 'next/link';
 import { useDropzone } from 'react-dropzone';
 import { ArrowLeft, Upload, FileVideo, FileImage, FileAudio, FileText, Loader2, X } from 'lucide-react';
-import { projectsApi } from '@/lib/api';
+import { projectsApi, formatApiError } from '@/lib/api';
 
 type MediaSubtype =
     | 'video_ad'
@@ -15,7 +15,8 @@ type MediaSubtype =
     | 'radio_ad'
     | 'streaming_audio_ad'
     | 'email_marketing'
-    | 'blog_article';
+    | 'blog_article'
+    | 'custom';
 
 const SUBTYPE_OPTIONS: {
     group: string;
@@ -42,9 +43,21 @@ const SUBTYPE_OPTIONS: {
         items: [
             { value: 'email_marketing', label: 'Email marketing', modality: 'text' },
             { value: 'blog_article', label: 'Blog post / article', modality: 'text' },
+            {
+                value: 'custom',
+                label: 'Custom (idea, ideology, product, solution)',
+                modality: 'text',
+            },
         ],
     },
 ];
+
+const TEXT_FILE_ACCEPT = {
+    'text/plain': ['.txt'],
+    'text/html': ['.html', '.htm'],
+    'application/pdf': ['.pdf'],
+    'application/vnd.openxmlformats-officedocument.wordprocessingml.document': ['.docx'],
+};
 
 const ACCEPT_BY_SUBTYPE: Record<MediaSubtype, Record<string, string[]>> = {
     video_ad: { 'video/*': ['.mp4', '.mov', '.avi', '.webm', '.mkv'] },
@@ -57,18 +70,9 @@ const ACCEPT_BY_SUBTYPE: Record<MediaSubtype, Record<string, string[]>> = {
     ooh: { 'image/*': ['.jpg', '.jpeg', '.png', '.webp', '.gif'], 'application/pdf': ['.pdf'] },
     radio_ad: { 'audio/*': ['.mp3', '.wav', '.m4a', '.ogg', '.aac'] },
     streaming_audio_ad: { 'audio/*': ['.mp3', '.wav', '.m4a', '.ogg', '.aac'] },
-    email_marketing: {
-        'text/plain': ['.txt'],
-        'text/html': ['.html', '.htm'],
-        'application/pdf': ['.pdf'],
-        'application/vnd.openxmlformats-officedocument.wordprocessingml.document': ['.docx'],
-    },
-    blog_article: {
-        'text/plain': ['.txt'],
-        'text/html': ['.html', '.htm'],
-        'application/pdf': ['.pdf'],
-        'application/vnd.openxmlformats-officedocument.wordprocessingml.document': ['.docx'],
-    },
+    email_marketing: TEXT_FILE_ACCEPT,
+    blog_article: TEXT_FILE_ACCEPT,
+    custom: TEXT_FILE_ACCEPT,
 };
 
 const MAX_SIZE_BY_SUBTYPE: Record<MediaSubtype, number> = {
@@ -80,6 +84,7 @@ const MAX_SIZE_BY_SUBTYPE: Record<MediaSubtype, number> = {
     streaming_audio_ad: 100 * 1024 * 1024,
     email_marketing: 10 * 1024 * 1024,
     blog_article: 10 * 1024 * 1024,
+    custom: 10 * 1024 * 1024,
 };
 
 const HINT_BY_SUBTYPE: Record<MediaSubtype, string> = {
@@ -91,6 +96,7 @@ const HINT_BY_SUBTYPE: Record<MediaSubtype, string> = {
     streaming_audio_ad: 'MP3, WAV, M4A, OGG, AAC — max 100MB',
     email_marketing: 'Paste copy below, or upload TXT, HTML, PDF, DOCX — max 10MB',
     blog_article: 'Paste copy below, or upload TXT, HTML, PDF, DOCX — max 10MB',
+    custom: 'Paste an idea, ideology, product pitch, or solution — or upload TXT/HTML/PDF/DOCX',
 };
 
 function modalityForSubtype(subtype: MediaSubtype): string {
@@ -201,26 +207,7 @@ export default function NewProjectPage() {
 
             router.push(`/dashboard/project/${project.id}`);
         } catch (err: any) {
-            const detail = err.response?.data?.detail;
-            if (typeof detail === 'string') {
-                setError(detail);
-            } else if (Array.isArray(detail)) {
-                setError(
-                    detail
-                        .map((item: any) => {
-                            const field = Array.isArray(item?.loc)
-                                ? item.loc.filter((p: unknown) => p !== 'body').join('.')
-                                : '';
-                            const msg = item?.msg || JSON.stringify(item);
-                            return field ? `${field}: ${msg}` : msg;
-                        })
-                        .join('; ')
-                );
-            } else if (detail && typeof detail === 'object') {
-                setError(detail.msg || JSON.stringify(detail));
-            } else {
-                setError(err.message || 'Failed to create project');
-            }
+            setError(formatApiError(err, 'Failed to create project'));
         } finally {
             setUploading(false);
         }
@@ -325,7 +312,11 @@ export default function NewProjectPage() {
                                             onChange={(e) => setTextContent(e.target.value)}
                                             disabled={uploading}
                                             rows={8}
-                                            placeholder="Paste email body, newsletter, or article text here..."
+                                            placeholder={
+                                                mediaSubtype === 'custom'
+                                                    ? 'Describe a new product, idea, ideology, policy, or solution to test across agents...'
+                                                    : 'Paste email body, newsletter, or article text here...'
+                                            }
                                             className="w-full px-4 py-3 bg-white border border-[#c4d4d0] rounded-xl focus:outline-none focus:border-[#679a90] focus:ring-1 focus:ring-[#679a90] text-[#1a3840] placeholder-gray-400 resize-y"
                                         />
                                         <p className="text-sm text-[#647c77] mt-2">

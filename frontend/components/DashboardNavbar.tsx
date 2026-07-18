@@ -13,7 +13,7 @@ export default function DashboardNavbar() {
 
     const handleLogout = () => {
         authApi.logout();
-        document.cookie = 'user=; path=/; max-age=0'; // Clear the user cookie
+        document.cookie = 'user=; path=/; max-age=0';
         logout();
         router.push('/login');
     };
@@ -24,17 +24,43 @@ export default function DashboardNavbar() {
         return false;
     };
 
+    const projectsActive =
+        isActive('/dashboard') &&
+        !pathname.startsWith('/dashboard/billing') &&
+        !pathname.startsWith('/dashboard/agents') &&
+        !pathname.startsWith('/dashboard/about');
+
     return (
         <header className="border-b border-[#e5e7eb] bg-[#f8f8f7]">
             <div className="mx-auto flex max-w-[1280px] items-center justify-between px-6 py-3">
                 <nav className="flex items-center gap-8 text-sm font-medium text-[#111827]">
                     <Link href="/" className="hover:text-black">Home</Link>
-                    <Link href="/dashboard" className={isActive('/dashboard') ? "text-[#00897f]" : "hover:text-black"}>Projects</Link>
-                    <Link href="/dashboard/agents" className={isActive('/dashboard/agents') ? "text-[#00897f]" : "hover:text-black"}>Agents</Link>
-                    <Link href="/dashboard/about" className={isActive('/dashboard/about') ? "text-[#00897f]" : "hover:text-black"}>About</Link>
+                    <Link href="/dashboard" className={projectsActive ? 'text-[#00897f]' : 'hover:text-black'}>
+                        Projects
+                    </Link>
+                    <Link
+                        href="/dashboard/agents"
+                        className={isActive('/dashboard/agents') ? 'text-[#00897f]' : 'hover:text-black'}
+                    >
+                        Agents
+                    </Link>
+                    <Link
+                        href="/dashboard/billing"
+                        className={isActive('/dashboard/billing') ? 'text-[#00897f]' : 'hover:text-black'}
+                    >
+                        Pricing
+                    </Link>
+                    <Link
+                        href="/dashboard/about"
+                        className={isActive('/dashboard/about') ? 'text-[#00897f]' : 'hover:text-black'}
+                    >
+                        About
+                    </Link>
                 </nav>
                 <div className="flex items-center gap-6 text-sm">
-                    <Link href="/Help" className="font-semibold hover:text-[#00897f] transition-colors">Help Centre</Link>
+                    <Link href="/Help" className="font-semibold hover:text-[#00897f] transition-colors">
+                        Help Centre
+                    </Link>
                     <button
                         onClick={handleLogout}
                         className="inline-flex items-center gap-2 rounded-md border border-[#d1d5db] px-2.5 py-1.5 text-[#374151] hover:bg-white"

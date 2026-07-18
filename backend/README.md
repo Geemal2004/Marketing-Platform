@@ -49,8 +49,8 @@ Defined in [backend/app/routers/projects.py](backend/app/routers/projects.py):
 
 Notes:
 
-- Project create accepts `media_subtype` plus either a `media` file (or legacy `video`) or pasted `text_content` for email/blog subtypes.
-- Supported subtypes: `video_ad`, `print_ad`, `display_banner`, `ooh`, `radio_ad`, `streaming_audio_ad`, `email_marketing`, `blog_article`.
+- Supported subtypes: `video_ad`, `print_ad`, `display_banner`, `ooh`, `radio_ad`, `streaming_audio_ad`, `email_marketing`, `blog_article`, `custom`.
+- Project create accepts `media_subtype` plus either a `media` file (or legacy `video`) or pasted `text_content` for text subtypes (email, blog, custom).
 - Files are uploaded to Hugging Face storage through the hf_storage service (modality prefixes: videos/, images/, audio/, text/).
 - Celery `process_media_task` decomposes media via Gemini (or extracts/passthrough for text) into `vlm_generated_context`.
 

@@ -150,6 +150,7 @@ def normalize_pasted_text(text: str, subtype: str) -> str:
     label = {
         "email_marketing": "EMAIL MARKETING COPY",
         "blog_article": "BLOG / ARTICLE COPY",
+        "custom": "CUSTOM IDEA / IDEOLOGY / CONCEPT",
     }.get(subtype, "TEXT CREATIVE")
     return f"{label}\n\n{cleaned}"
 

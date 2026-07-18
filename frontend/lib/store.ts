@@ -5,6 +5,7 @@ interface User {
     id: string;
     email: string;
     subscription_tier: string;
+    credits_balance?: number;
 }
 
 interface AuthStore {

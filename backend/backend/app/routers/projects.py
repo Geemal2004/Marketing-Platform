@@ -81,7 +81,7 @@ async def create_project(
     - title (required)
     - media_subtype (default video_ad)
     - media or video (file)
-    - text_content (paste for email/blog)
+    - text_content (paste for text subtypes: email, blog, custom)
     - demographic_filter (optional JSON string)
     """
     form = await request.form()
@@ -126,7 +126,7 @@ async def create_project(
         if pasted:
             raise HTTPException(
                 status_code=status.HTTP_400_BAD_REQUEST,
-                detail="text_content is only allowed for email/blog text subtypes.",
+                detail="text_content is only allowed for text creative types (email, blog, custom).",
             )
 
     # Prefer pasted text when both are provided for text subtypes
@@ -135,6 +135,7 @@ async def create_project(
     media_url = None
     actual_modality = modality
     tmp_path = None
+    file_size_bytes = None
 
     try:
         if upload and not use_paste_only:
@@ -150,6 +151,7 @@ async def create_project(
             actual_modality = resolve_modality_from_extension(media_subtype, file_ext)
             max_size = max_size_for_subtype(media_subtype)
             tmp_path = _save_upload_to_temp(upload, file_ext, max_size)
+            file_size_bytes = os.path.getsize(tmp_path) if os.path.exists(tmp_path) else None
 
             file_id = str(uuid.uuid4())
             filename = f"{file_id}{file_ext}"

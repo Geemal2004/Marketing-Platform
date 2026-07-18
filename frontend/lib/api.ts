@@ -38,6 +38,30 @@ export const clearStoredToken = () => {
     document.cookie = `${AUTH_COOKIE_NAME}=; path=/; max-age=0`;
 };
 
+export function formatApiError(err: any, fallback = 'Request failed'): string {
+    const detail = err?.response?.data?.detail;
+    if (typeof detail === 'string') return detail;
+    if (detail && typeof detail === 'object' && detail.message) {
+        const req = detail.required != null ? ` (need ${detail.required}, have ${detail.balance})` : '';
+        return `${detail.message}${req}`;
+    }
+    if (Array.isArray(detail)) {
+        return detail
+            .map((item: any) => {
+                const field = Array.isArray(item?.loc)
+                    ? item.loc.filter((p: unknown) => p !== 'body').join('.')
+                    : '';
+                const msg = item?.msg || JSON.stringify(item);
+                return field ? `${field}: ${msg}` : msg;
+            })
+            .join('; ');
+    }
+    if (detail && typeof detail === 'object') {
+        return detail.msg || JSON.stringify(detail);
+    }
+    return err?.message || fallback;
+}
+
 // Add auth token; for FormData let the browser set multipart Content-Type + boundary
 api.interceptors.request.use((config) => {
     if (typeof window !== 'undefined') {
@@ -198,6 +222,14 @@ export const agentsApi = {
     },
     delete: async (id: string) => {
         await api.delete(`/agents/${id}`);
+    },
+};
+
+// Billing / pricing description API (informational; no payments)
+export const billingApi = {
+    plans: async () => {
+        const response = await api.get('/billing/plans');
+        return response.data;
     },
 };
 

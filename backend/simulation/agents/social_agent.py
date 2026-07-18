@@ -197,7 +197,7 @@ class SocialAgent:
 Your past experiences relevant to this ad:
 {memory_str}
 
-You just saw this advertisement:
+You just saw or read this advertisement, idea, product concept, or ideology brief:
 {ad_content}
 
 React authentically as {name}. Consider your background, 
@@ -206,17 +206,17 @@ Strong reactions should reflect genuine conflicts or alignments
 with your identity and values.
 
 Pay special attention to:
-- The brand and product being advertised — do you recognise them? Do you already like, dislike, trust, or ignore this brand?
-- Any famous people (actors, sportspeople, singers, influencers) in the ad — does that person matter to you personally (fan, indifferent, dislike)?
-- Whether celebrity endorsement or strong branding makes you more interested, suspicious, or unmoved.
+- The brand, product, idea, or ideology being presented — do you recognise it? Would you support, reject, ignore, or adopt it?
+- Any famous people (actors, sportspeople, singers, influencers) mentioned — does that person matter to you personally (fan, indifferent, dislike)?
+- Whether celebrity endorsement, branding, or the underlying ideology makes you more interested, suspicious, or unmoved.
 
 Analyze your reaction as this person:
-1. How does this ad make you FEEL? (Choose one: HAPPY, ANGRY, SAD, NEUTRAL)
+1. How does this make you FEEL? (Choose one: HAPPY, ANGRY, SAD, NEUTRAL)
 2. What is your OPINION? (Choose one: POSITIVE, NEUTRAL, NEGATIVE)
-3. WHY do you feel this way? (2-3 sentences from YOUR perspective as this person — mention the brand and any celebrity if they influenced you)
+3. WHY do you feel this way? (2-3 sentences from YOUR perspective as this person — mention the brand, idea, or any celebrity if they influenced you)
 
 You MUST respond in this JSON format:
-{{"emotion": "ANGRY", "opinion": "NEGATIVE", "reasoning": "This ad shows something I disagree with because..."}}"""
+{{"emotion": "ANGRY", "opinion": "NEGATIVE", "reasoning": "This shows something I disagree with because..."}}"""
 
     def _parse_llm_response(self, response: str) -> Dict[str, Any]:
         """Extract structured data from LLM response"""

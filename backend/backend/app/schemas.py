@@ -61,6 +61,7 @@ class UserResponse(BaseModel):
     id: UUID
     email: str
     subscription_tier: str
+    credits_balance: int = 0
     created_at: datetime
 
     class Config:

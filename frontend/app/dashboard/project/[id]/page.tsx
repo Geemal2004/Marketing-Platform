@@ -18,7 +18,8 @@ import {
     X,
     Users,
 } from 'lucide-react';
-import { projectsApi, simulationsApi, agentsApi } from '@/lib/api';
+import { projectsApi, simulationsApi, agentsApi, formatApiError } from '@/lib/api';
+import MarkdownContent from '@/components/MarkdownContent';
 
 export default function ProjectDetailPage() {
     const params = useParams();
@@ -32,6 +33,7 @@ export default function ProjectDetailPage() {
     const [selectedAgentIds, setSelectedAgentIds] = useState<string[]>([]);
     const [useCustomAgentsOnly, setUseCustomAgentsOnly] = useState(false);
     const [isDemographicsOpen, setIsDemographicsOpen] = useState(false);
+    const [startError, setStartError] = useState('');
     const [demoFilter, setDemoFilter] = useState({
         age_range: [18, 65],
         gender: 'All',
@@ -85,12 +87,16 @@ export default function ProjectDetailPage() {
     const startSimulation = useMutation({
         mutationFn: (payload: any) => simulationsApi.start(projectId, payload),
         onSuccess: (data) => {
-            // Navigate to the simulation results page immediately
+            setStartError('');
             router.push(`/dashboard/project/${projectId}/simulation/${data.id}`);
+        },
+        onError: (err: any) => {
+            setStartError(formatApiError(err, 'Failed to start simulation'));
         },
     });
 
     const handleStartSimulation = () => {
+        setStartError('');
         const payload: any = { simulation_days: simulationDays };
 
         if (agentTab === 'custom') {
@@ -290,9 +296,7 @@ export default function ProjectDetailPage() {
                                         </div>
                                     </div>
                                 ) : (
-                                    <div className="text-[#4b5563] text-[15px] leading-relaxed whitespace-pre-wrap font-sans">
-                                        {project.vlm_generated_context}
-                                    </div>
+                                    <MarkdownContent content={project.vlm_generated_context} />
                                 )
                             ) : (
                                 <div className="flex h-full items-center justify-center text-[#9ca3af] italic text-sm">
@@ -658,8 +662,10 @@ export default function ProjectDetailPage() {
                             </div>
                         )}
 
-                        {startSimulation.isError && (
-                            <p className="text-sm font-medium text-red-600 bg-red-50 py-2 px-3 rounded-md mb-4">Failed to start simulation. Please try again.</p>
+                        {(startError || startSimulation.isError) && (
+                            <p className="text-sm font-medium text-red-600 bg-red-50 py-2 px-3 rounded-md mb-4">
+                                {startError || 'Failed to start simulation. Please try again.'}
+                            </p>
                         )}
 
                         <button

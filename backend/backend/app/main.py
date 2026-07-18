@@ -93,11 +93,12 @@ app.add_middleware(
 )
 
 # Register routers
-from app.routers import auth_router, projects_router, simulations_router, agents_router
+from app.routers import auth_router, projects_router, simulations_router, agents_router, billing_router
 app.include_router(auth_router)
 app.include_router(projects_router)
 app.include_router(simulations_router)
 app.include_router(agents_router)
+app.include_router(billing_router)
 
 
 @app.get("/")

@@ -8,10 +8,32 @@ CREATE TABLE IF NOT EXISTS users (
     password_hash VARCHAR(255) NOT NULL,
     created_at TIMESTAMP DEFAULT NOW(),
     subscription_tier VARCHAR(20) DEFAULT 'FREE' 
-        CHECK (subscription_tier IN ('FREE', 'PRO', 'ENTERPRISE'))
+        CHECK (subscription_tier IN ('FREE', 'PRO', 'ENTERPRISE')),
+    credits_balance INT NOT NULL DEFAULT 0,
+    credits_period_start TIMESTAMP DEFAULT NOW()
 );
 
 CREATE INDEX IF NOT EXISTS idx_users_email ON users(email);
+
+-- 1b. Credit ledger (append-only)
+CREATE TABLE IF NOT EXISTS credit_transactions (
+    id UUID PRIMARY KEY DEFAULT uuid_generate_v4(),
+    user_id UUID NOT NULL REFERENCES users(id) ON DELETE CASCADE,
+    amount INT NOT NULL,
+    reason VARCHAR(40) NOT NULL
+        CHECK (reason IN (
+            'SIGNUP_GRANT', 'MONTHLY_GRANT', 'VLM_CHARGE', 'VLM_ADJUST',
+            'VLM_REFUND', 'SIM_CHARGE', 'SIM_REFUND', 'ADMIN_GRANT'
+        )),
+    reference_type VARCHAR(40),
+    reference_id UUID,
+    balance_after INT NOT NULL,
+    metadata JSONB,
+    created_at TIMESTAMP DEFAULT NOW()
+);
+
+CREATE INDEX IF NOT EXISTS idx_credit_tx_user ON credit_transactions(user_id, created_at DESC);
+CREATE INDEX IF NOT EXISTS idx_credit_tx_ref ON credit_transactions(reference_type, reference_id);
 
 -- 2. Projects Table (Campaigns/Advertisements)
 CREATE TABLE IF NOT EXISTS projects (
