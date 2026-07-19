@@ -84,7 +84,7 @@ def init_ray_cluster(
         # files AND copy the worker scripts there so the path has no spaces.
         import tempfile
         import shutil
-        ray_temp = os.path.join(tempfile.gettempdir(), "ray_agentsociety")
+        ray_temp = os.path.join(tempfile.gettempdir(), "ray_veyra")
         os.makedirs(ray_temp, exist_ok=True)
         logger.info(f"Using Ray temp dir: {ray_temp}")
 

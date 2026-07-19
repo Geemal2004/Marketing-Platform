@@ -1,5 +1,5 @@
 """
-Seed mock data for the AgentSociety database.
+Seed mock data for the Veyra database.
 
 Run from the repo root:
     py backend/backend/seed_mock_data.py
@@ -363,13 +363,13 @@ def seed():
     try:
         admin_user = _ensure_user(
             db,
-            email="admin@agenticmarketing.com",
+            email="admin@veyra.com",
             password="admin123",
             subscription_tier="PRO",
         )
         _ensure_user(
             db,
-            email="analyst@agenticmarketing.com",
+            email="analyst@veyra.com",
             password="analyst123",
             subscription_tier="FREE",
         )

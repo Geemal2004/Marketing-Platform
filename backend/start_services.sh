@@ -37,7 +37,7 @@ trap cleanup EXIT
 trap 'exit 130' INT TERM
 
 echo "============================================================"
-echo "       AgentSociety Platform - Starting Services"
+echo "       Veyra - Starting Services"
 echo "============================================================"
 echo
 

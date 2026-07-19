@@ -1,6 +1,6 @@
 @echo off
 REM ============================================================
-REM AgentSociety Platform - Service Startup Script
+REM Veyra - Service Startup Script
 REM ============================================================
 REM This script starts all required services for the platform:
 REM   1. FastAPI Backend (API server)
@@ -10,7 +10,7 @@ REM   4. Frontend (Next.js)
 REM ============================================================
 
 echo ============================================================
-echo        AgentSociety Platform - Starting Services
+echo        Veyra - Starting Services
 echo ============================================================
 echo.
 
@@ -25,7 +25,7 @@ if exist "%~dp0.env" (
 )
 
 REM Local development defaults. Values in backend\.env or the current shell win.
-if not defined DATABASE_URL set "DATABASE_URL=postgresql://agentsociety:dev_password@localhost:5433/agentsociety_db"
+if not defined DATABASE_URL set "DATABASE_URL=postgresql://veyra:dev_password@localhost:5433/veyra_db"
 if not defined REDIS_URL set "REDIS_URL=redis://localhost:6379/0"
 if not defined CHROMA_HOST set "CHROMA_HOST=localhost"
 if not defined CHROMA_PORT set "CHROMA_PORT=8000"

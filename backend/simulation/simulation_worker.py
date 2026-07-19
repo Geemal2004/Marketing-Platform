@@ -62,7 +62,7 @@ class SimulationWorker:
         # Database connection string
         self.db_url = os.getenv(
             "DATABASE_URL",
-            "postgresql://agentsociety:dev_password@localhost:5433/agentsociety_db"
+            "postgresql://veyra:dev_password@localhost:5433/veyra_db"
         )
 
         logger.info(f"SimulationWorker initialized with Redis: {self.redis_url}")

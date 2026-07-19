@@ -1,5 +1,5 @@
 """
-SQLAlchemy models for the AgentSociety platform
+SQLAlchemy models for the Veyra platform
 """
 import uuid
 from datetime import datetime

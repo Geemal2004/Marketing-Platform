@@ -20,7 +20,7 @@ logger = logging.getLogger(__name__)
 
 # Initialize Celery
 celery_app = Celery(
-    "agentsociety",
+    "veyra",
     broker=settings.redis_url,
     backend=settings.redis_url
 )

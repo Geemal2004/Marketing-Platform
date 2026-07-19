@@ -394,7 +394,7 @@ def main() -> None:
 
     db = SessionLocal()
     try:
-        user = _ensure_user(db, "admin@agenticmarketing.com", "admin123")
+        user = _ensure_user(db, "admin@veyra.com", "admin123")
         created = 0
         for payload in SRI_LANKAN_AGENTS:
             before = (

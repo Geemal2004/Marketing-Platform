@@ -1,5 +1,5 @@
 """
-AgentSociety Marketing Platform - FastAPI Backend
+Veyra - FastAPI Backend
 """
 import os
 import logging
@@ -23,7 +23,7 @@ async def lifespan(app: FastAPI):
     settings = get_settings()
     
     # Startup
-    logger.info("Starting AgentSociety API...")
+    logger.info("Starting Veyra API...")
     logger.info(
         "HF media storage: repo=%s type=%s",
         settings.hf_video_repo_id,
@@ -68,12 +68,12 @@ async def lifespan(app: FastAPI):
     # Shutdown
     from app.results_listener import stop_results_listener
     stop_results_listener()
-    logger.info("Shutting down AgentSociety API...")
+    logger.info("Shutting down Veyra API...")
 
 
 # Create FastAPI app - disable redirect_slashes to prevent 307 that strips auth headers
 app = FastAPI(
-    title="AgentSociety Marketing Platform",
+    title="Veyra",
     description="AI-powered marketing simulation platform that simulates 1,000+ AI agents reacting to multimedia advertisements",
     version="1.0.0",
     lifespan=lifespan,
@@ -106,7 +106,7 @@ def root():
     """Health check endpoint"""
     return {
         "status": "healthy",
-        "service": "AgentSociety API",
+        "service": "Veyra API",
         "version": "1.0.0"
     }
 

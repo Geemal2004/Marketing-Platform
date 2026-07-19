@@ -33,7 +33,7 @@ _ENV_FILE = find_env_file()
 
 class Settings(BaseSettings):
     # Database
-    database_url: str = "postgresql://agentsociety:dev_password@localhost:5433/agentsociety_db"
+    database_url: str = "postgresql://veyra:dev_password@localhost:5433/veyra_db"
 
     # Redis
     redis_url: str = "redis://localhost:6379/0"
@@ -52,7 +52,7 @@ class Settings(BaseSettings):
     # AWS S3 (optional)
     aws_access_key_id: str = ""
     aws_secret_access_key: str = ""
-    aws_s3_bucket: str = "agentsociety-videos-dev"
+    aws_s3_bucket: str = "veyra-videos-dev"
     aws_region: str = "ap-south-1"
 
     # Google Gemini API (used by VLM video analysis)

@@ -17,7 +17,7 @@ cleanup() {
 
 trap cleanup EXIT INT TERM
 
-echo "[startup] Launching AgentSociety services"
+echo "[startup] Launching Veyra services"
 echo "[startup] Backend on :$PORT"
 
 cd /app/backend
