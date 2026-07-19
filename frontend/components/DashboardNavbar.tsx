@@ -33,7 +33,12 @@ export default function DashboardNavbar() {
     return (
         <header className="border-b border-[#e5e7eb] bg-[#f8f8f7]">
             <div className="mx-auto flex max-w-[1280px] items-center justify-between px-6 py-3">
-                <nav className="flex items-center gap-8 text-sm font-medium text-[#111827]">
+                <div className="flex items-center gap-8">
+                    <Link href="/" className="flex items-center gap-2 shrink-0">
+                        <img src="/logo.png" alt="Veyra" className="w-7 h-7 object-contain" />
+                        <span className="text-lg font-bold font-heading text-[#101828]">VEYRA</span>
+                    </Link>
+                    <nav className="flex items-center gap-8 text-sm font-medium text-[#111827]">
                     <Link href="/" className="hover:text-black">Home</Link>
                     <Link href="/dashboard" className={projectsActive ? 'text-[#00897f]' : 'hover:text-black'}>
                         Projects
@@ -57,6 +62,7 @@ export default function DashboardNavbar() {
                         About
                     </Link>
                 </nav>
+                </div>
                 <div className="flex items-center gap-6 text-sm">
                     <Link href="/Help" className="font-semibold hover:text-[#00897f] transition-colors">
                         Help Centre

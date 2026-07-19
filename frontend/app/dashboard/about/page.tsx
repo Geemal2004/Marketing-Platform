@@ -3,7 +3,7 @@ export default function AboutPage() {
         <div className="max-w-4xl mx-auto px-6 py-16 text-[#101828]">
             <div className="border-b border-slate-200 pb-8 mb-10">
                 <h1 className="text-4xl font-semibold tracking-tight mb-4">
-                    About AgentSociety Platform
+                    About Veyra
                 </h1>
                 <p className="text-lg text-slate-600 leading-relaxed text-justify">
                     A next-generation autonomous AI simulation environment engine. This platform provides continuous multi-day analytic evaluation of marketing campaigns across synthetic societies, projecting realistic backlash and endorsement metrics before an ad is publicly launched.
@@ -14,7 +14,7 @@ export default function AboutPage() {
                 <section>
                     <h2 className="text-2xl font-semibold border-b border-slate-100 pb-2 mb-4">Platform Overview</h2>
                     <p className="text-slate-600 leading-relaxed mb-4">
-                        The AgentSociety Marketing Platform executes highly realistic, large-scale consumer simulations using advanced Large Language Models (LLMs) to represent synthetic populations accurately. Instead of relying solely on traditional human surveying, our system orchestrates asynchronous social interactions and sentiment propagation over simulated longitudinal intervals.
+                        Veyra executes highly realistic, large-scale consumer simulations using advanced Large Language Models (LLMs) to represent synthetic populations accurately. Instead of relying solely on traditional human surveying, our system orchestrates asynchronous social interactions and sentiment propagation over simulated longitudinal intervals.
                     </p>
                     <p className="text-slate-600 leading-relaxed">
                         Through <b>Automated Risk Flagging</b> and <b>Real-Time Deliberation</b>, the platform preemptively identifies cultural controversies across 50+ demographic boundaries and models genuine behavioral shifts across multi-day lifecycles where independent agents hold distinct semantic memories and iteratively influence their social networks.
@@ -58,7 +58,7 @@ export default function AboutPage() {
 
             <div className="mt-16 pt-8 border-t border-slate-200 text-center">
                 <p className="text-sm font-medium text-slate-400">
-                    AgentSociety Marketing Platform © {new Date().getFullYear()} — Powering Predictive Brand Intelligence
+                    Veyra © {new Date().getFullYear()} — Powering Predictive Brand Intelligence
                 </p>
             </div>
         </div>

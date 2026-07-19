@@ -4,7 +4,7 @@ import 'leaflet/dist/leaflet.css';
 import { Providers } from './providers';
 
 export const metadata: Metadata = {
-    title: 'AgenticMarketing - AI Marketing Simulation',
+    title: 'Veyra - AI Marketing Simulation',
     description: 'Simulate 1000+ AI agents reacting to your advertisements before launch',
     icons: {
         icon: '/logo.png',

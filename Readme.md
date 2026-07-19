@@ -1,10 +1,10 @@
 <table>
   <tr>
     <td valign="top">
-      <img src="frontend/public/logo.png" alt="AgentMarketing Logo" width="200"/>
+      <img src="frontend/public/logo.png" alt="Veyra Logo" width="200"/>
     </td>
     <td valign="top">
-      <h1>AgentMarketing Platform</h1>
+      <h1>Veyra</h1>
       <p>End-to-end platform for running AI-agent marketing simulations from uploaded multimedia creatives.</p>
       <p>This repository supports two runtime models:</p>
       <ul>
@@ -161,7 +161,7 @@ cp compose/backend/.env.local compose/backend/.env
 
 Container overrides in compose/dockercompose.yml set:
 
-- DATABASE_URL=postgresql://agentsociety:dev_password@localhost:5433/agentsociety_db
+- DATABASE_URL=postgresql://veyra:dev_password@localhost:5433/veyra_db
 - REDIS_URL=redis://redis:6379/0
 - CHROMA_HOST=chromadb
 - CHROMA_PORT=8000

@@ -15,7 +15,7 @@ export default function HelpCenter() {
 
             <main className="max-w-5xl mx-auto px-6 py-12">
                 <div className="text-center max-w-2xl mx-auto mb-16">
-                    <h2 className="text-3xl font-extrabold text-slate-900 mb-4 tracking-tight">How to Use AgentSociety</h2>
+                    <h2 className="text-3xl font-extrabold text-slate-900 mb-4 tracking-tight">How to Use Veyra</h2>
                     <p className="text-lg text-slate-600">
                         Follow these steps to run your first autonomous marketing simulation and extract actionable demographic intelligence.
                     </p>

@@ -3,25 +3,25 @@ version: '3.8'
 services:
   postgres:
     image: postgres:15
-    container_name: agentsociety-postgres
+    container_name: veyra-postgres
     environment:
-      POSTGRES_USER: agentsociety
+      POSTGRES_USER: veyra
       POSTGRES_PASSWORD: dev_password
-      POSTGRES_DB: agentsociety_db
+      POSTGRES_DB: veyra_db
     ports:
       - "5433:5432"
     volumes:
       - postgres_data:/var/lib/postgresql/data
       - ./database/schema.sql:/docker-entrypoint-initdb.d/01_schema.sql:ro
     healthcheck:
-      test: ["CMD-SHELL", "pg_isready -U agentsociety -d agentsociety_db"]
+      test: ["CMD-SHELL", "pg_isready -U veyra -d veyra_db"]
       interval: 10s
       timeout: 5s
       retries: 5
 
   redis:
     image: redis:7-alpine
-    container_name: agentsociety-redis
+    container_name: veyra-redis
     ports:
       - "6379:6379"
     volumes:
@@ -34,7 +34,7 @@ services:
 
   emqx:
     image: emqx/emqx:5.5.0
-    container_name: agentsociety-emqx
+    container_name: veyra-emqx
     ports:
       - "1883:1883"
       - "8083:8083"
@@ -56,7 +56,7 @@ services:
 
   chromadb:
     image: chromadb/chroma:latest
-    container_name: agentsociety-chromadb
+    container_name: veyra-chromadb
     ports:
       - "8000:8000"
     volumes:

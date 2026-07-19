@@ -89,8 +89,8 @@ export default function HomePage() {
                 <header className="border-b border-[#e5e7eb] bg-[#f8f8f7] relative z-50">
                     <div className="mx-auto flex max-w-[1280px] items-center justify-between px-6 py-3">
                         <div className="flex items-center space-x-3">
-                            <img src="/logo.png" alt="AgenticMarketing Logo" className="w-8 h-8 object-contain  " />
-                            <span className="text-xl font-bold font-heading text-[#101828]">AGENTIC<span className="font-light text-slate-500">MARKETING</span></span>
+                            <img src="/logo.png" alt="Veyra Logo" className="w-8 h-8 object-contain  " />
+                            <span className="text-xl font-bold font-heading text-[#101828]">VEYRA</span>
                         </div>
 
                         <div className="flex items-center gap-4 text-sm font-medium">
@@ -348,7 +348,7 @@ export default function HomePage() {
             {/* Footer */}
             <footer className="border-t border-[#e5e7eb] bg-white py-8 relative z-10">
                 <div className="max-w-7xl mx-auto px-6 text-center text-[#9ca3af] text-sm">
-                    <p>© {new Date().getFullYear()} AGENTIC MARKETING.</p>
+                    <p>© {new Date().getFullYear()} VEYRA.</p>
                 </div>
             </footer>
         </div>

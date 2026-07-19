@@ -160,7 +160,7 @@ export default function SimulationResultsPage() {
                 <div className="max-w-[1400px] mx-auto px-4 md:px-8 py-5 flex items-start md:items-center justify-between gap-4">
                     <div>
                         <p className="text-3xl font-extrabold tracking-tight">
-                            AGENTIC<span className="font-light text-slate-600">MARKETING</span>
+                            VEYRA
                         </p>
                         <p className="text-sm text-slate-500 mt-1">Simulation analytics dashboard</p>
                     </div>
